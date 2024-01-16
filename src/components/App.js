@@ -3,27 +3,40 @@ import axios from '../lib/axios';
 // import classNames from 'classnames'
 // import { useForm } from "react-hook-form";
 import { ReactComponent as IconLoading } from '../images/fade-stagger-squares.svg';
-import { ReactComponent as IconWind } from '../images/icon-wind.svg';
-import { ReactComponent as IconSwell } from '../images/icon-swell.svg';
-import { ReactComponent as IconTide } from '../images/icon-tide.svg';
-import { ReactComponent as IconSeaState } from '../images/icon-sea-state.svg';
-import { ReactComponent as IconTemperature } from '../images/icon-temperature.svg';
-import { ReactComponent as IconBarometer } from '../images/icon-barometer.svg';
+import { ReactComponent as IconWind } from '../images/icon-wind-cropped.svg';
+import { ReactComponent as IconSwell } from '../images/icon-swell-cropped.svg';
+import { ReactComponent as IconTide } from '../images/icon-tide-cropped.svg';
+import { ReactComponent as IconSeaState } from '../images/icon-sea-state-cropped.svg';
+import { ReactComponent as IconTemperature } from '../images/icon-temperature-cropped.svg';
+import { ReactComponent as IconBarometer } from '../images/icon-barometer-cropped.svg';
 // Charts
-import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
-import { Line } from 'react-chartjs-2';
+// import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
+// import { Line } from 'react-chartjs-2';
 // Date
 import * as dayjs from 'dayjs'
+// Map
+import { Wrapper, Status } from "@googlemaps/react-wrapper";
+import Map from './Map';
+// Chart Wrapper
+import LineChart from "./LineChart";
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-);
+const mapRender = ( status ) => {
+	if( status === Status.FAILURE ) {
+		console.debug( 'Map Error' );
+		return;
+	}
+	return <IconLoading />;
+}
+
+// ChartJS.register(
+//   CategoryScale,
+//   LinearScale,
+//   PointElement,
+//   LineElement,
+//   Title,
+//   Tooltip,
+//   Legend
+// );
 
 const degreesToDirection = degrees => {
 	const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
@@ -36,6 +49,7 @@ const degreesToDirection = degrees => {
 function App(props) {
 	const [buoys, setBuoys] = useState([]);
 	const [selectedBuoy, setSelectedBuoy] = useState(null);
+	const [mapDetails, setMapDetails] = useState(null);
 
 	useEffect(() => {
 		// Fetch all buoys
@@ -50,13 +64,21 @@ function App(props) {
 				})
 				.catch((e) => { console.debug(e); });
 		}
+
+		// Fetch Map details
+		axios
+			.get('/wp-json/wac/v1/map')
+			.then(response => {
+				if (response.status == 200) {
+					setMapDetails( response.data );
+				}
+			})
+			.catch( e => { console.debug(e) } );
 	}, []);
 
 	const updateBuoy = (buoyId) => {
 		// Set ID except when reselecting the default 
 		if (buoyId > 0) {
-			// Set current buoy
-			// setSelectedBuoy(buoyId);
 			// Fetch buoy values
 			axios.get('/wp-admin/admin-ajax.php?action=waf_rest_list_buoy_datapoints', {
 					params: {
@@ -64,7 +86,6 @@ function App(props) {
 					}
 				})
 				.then(response => {
-					
 					if (response.status == 200) {
 						const buoyDataPoints = response.data.data;
 						// Most recent event
@@ -85,20 +106,6 @@ function App(props) {
 							}
 						} );
 
-						// let chartData = {
-						// 	windSpeed: {
-						// 		datasets: [ { data: [] } ],
-						// 		labels: []
-						// 	},
-						// 	swellHeight: {
-						// 		datasets: [ { data: [] } ],
-						// 		labels: []
-						// 	},
-						// 	surfaceTemperature: {
-						// 		datasets: [ { data: [] } ],
-						// 		labels: []
-						// 	}
-						// };
 						if( buoyDataPoints.length > 0 ) {
 							if( buoyDataPoints[0]?.data_points ) {
 								// let processedData = {};
@@ -110,8 +117,6 @@ function App(props) {
 								processedData.windDirection = unprocessedData['WindDirec (deg)'] != "-9999.00" ? degreesToDirection( unprocessedData['WindDirec (deg)'] ) : null;
 								processedData.windSpeed = unprocessedData['WindSpeed (m/s)'] != "-9999.00" ? parseFloat( unprocessedData['WindSpeed (m/s)'] ) : null;
 							}
-
-							
 
 							// Wind Speed
 							buoyDataPoints.forEach( buoy => {
@@ -159,82 +164,82 @@ function App(props) {
 		}
 	};
 
-	const windSpeedXAxisCallback = ( tickValue, index, ticks ) => {
-		console.log( ticks );
-		return [
-			dayjs( ticks[index].value ).format( "D MMM" ),
-			dayjs( ticks[index].value ).format( "HH:mm" )
-		];
-	}
+	// const windSpeedXAxisCallback = ( tickValue, index, ticks ) => {
+	// 	console.log( ticks );
+	// 	return [
+	// 		dayjs( ticks[index].value ).format( "D MMM" ),
+	// 		dayjs( ticks[index].value ).format( "HH:mm" )
+	// 	];
+	// }
 
-	const toolTipLabelsCallback = ( tooltipItem ) => {
-		const { dataIndex, dataset } = tooltipItem;
+	// const toolTipLabelsCallback = ( tooltipItem ) => {
+	// 	const { dataIndex, dataset } = tooltipItem;
 
-		return 'Hello';
-	}
+	// 	return 'Hello';
+	// }
 
-	const windSpeedOptions = {
-		responsive: true,
-		plugins: {
-			legend: false,
-			title: {
-				display: false,
-			},
-			callbacks: {
-				label: toolTipLabelsCallback,
-			}
-		},
-		scales: {
-			x: {
-			// 	type: 'linear',
-				time: {
-					tooltipFormat: "DD T HH:mm"
-				},
-				title: {
-					display: true,
-					color: "#000",
-					text: "Time Range"
-				},
-				ticks: {
-					maxTicksLimit: 7,
-					autoSkip: false,
-					maxRotation: 0,
-					color: "#000",
-					callbacks: windSpeedXAxisCallback
-				},
-				grid: {
-					tickColor: "#000",
-					color: "#e1e1e1"
-				}
-			},
-			yAxis: {
-				type: "linear",
-				display: true,
-				position: "left",
-				id: "y",
-				gridLines: {
-					drawOnChartArea: false
-				},
-				ticks: {
-					// beginAtZero: true,
-					// min: 0,
-					// max: 25,
-					maxTicksLimit: 6,
-					color: "#000"
-				},
-				title: {
-					display: true,
-					text: "Wind Speed",
-					color: "#000"
-				},
-				grid: {
-					tickColor: "#000",
-					color: "#e1e1e1",
-					drawOnChartArea: false
-				}
-			}
-		}
-	};
+	// const windSpeedOptions = {
+	// 	responsive: true,
+	// 	plugins: {
+	// 		legend: false,
+	// 		title: {
+	// 			display: false,
+	// 		},
+	// 		callbacks: {
+	// 			label: toolTipLabelsCallback,
+	// 		}
+	// 	},
+	// 	scales: {
+	// 		x: {
+	// 		// 	type: 'linear',
+	// 			time: {
+	// 				tooltipFormat: "DD T HH:mm"
+	// 			},
+	// 			title: {
+	// 				display: true,
+	// 				color: "#000",
+	// 				text: "Time Range"
+	// 			},
+	// 			ticks: {
+	// 				maxTicksLimit: 7,
+	// 				autoSkip: false,
+	// 				maxRotation: 0,
+	// 				color: "#000",
+	// 				callbacks: windSpeedXAxisCallback
+	// 			},
+	// 			grid: {
+	// 				tickColor: "#000",
+	// 				color: "#e1e1e1"
+	// 			}
+	// 		},
+	// 		y: {
+	// 			type: "linear",
+	// 			display: true,
+	// 			position: "left",
+	// 			id: "y",
+	// 			gridLines: {
+	// 				drawOnChartArea: false
+	// 			},
+	// 			ticks: {
+	// 				// beginAtZero: true,
+	// 				// min: 0,
+	// 				// max: 25,
+	// 				maxTicksLimit: 6,
+	// 				color: "#000"
+	// 			},
+	// 			title: {
+	// 				display: true,
+	// 				text: "Wind Speed",
+	// 				color: "#000"
+	// 			},
+	// 			grid: {
+	// 				tickColor: "#000",
+	// 				color: "#e1e1e1",
+	// 				drawOnChartArea: false
+	// 			}
+	// 		}
+	// 	}
+	// };
 
 	return (
 		buoys.length > 0
@@ -255,13 +260,37 @@ function App(props) {
 						</div>
 					</div>
 					{ !selectedBuoy
-						? <div className="map"></div>
+						? (
+							<div className="map-wrapper">
+								{ mapDetails && (
+									<Wrapper apiKey={ mapDetails.maps_key } render={ mapRender }>
+										<Map 
+											zoom={ 16 }
+											center={ {
+												lat: parseFloat( mapDetails.maps_lat_min ), 
+												lng: parseFloat( mapDetails.maps_lng_min )
+											} }
+											bounds={ {
+												east: parseFloat( mapDetails.maps_lng_max ), north: parseFloat( mapDetails.maps_lat_min),
+												west: parseFloat( mapDetails.maps_lng_min ), south: parseFloat( mapDetails.maps_lat_max )
+											} }
+											markers={
+												buoys.map( buoy => ({ lat: parseFloat( buoy.lat ), lng: parseFloat( buoy.lng ) }) )
+											}
+											icon={
+												mapDetails.maps_marker_icon
+											}
+										/>
+									</Wrapper>
+								) }
+							</div>
+						)
 						: (
 							<div className="latest-observations">
 								<h4>Latest observations</h4>
 								<div className="observations">
 									<div className="observation wind">
-											<h5>Wind</h5>
+											<h5>Wind <IconWind /></h5>
 										<div class="metric">
 											<h6 className="label">Direction</h6>
 											<p>{ selectedBuoy.processedData.windDirection
@@ -270,15 +299,15 @@ function App(props) {
 											}</p>
 										</div>
 										<div class="metric">
-											<h6 className="label">Speed</h6>
+											<h6 className="label">Speed (m/s)</h6>
 											<p>{ selectedBuoy.processedData.windSpeed
-												? selectedBuoy.processedData.windSpeed + " m/s" 
+												? selectedBuoy.processedData.windSpeed 
 												: "-" 
 											}</p>
 										</div>
 									</div>
 									<div className="observation swell">
-										<h5>Swell</h5>
+										<h5>Swell <IconSwell /></h5>
 										<div class="metric">
 											<h6 className="label">Direction</h6>
 											<p>{ selectedBuoy.processedData.swellDirection
@@ -287,16 +316,16 @@ function App(props) {
 											}</p>
 										</div>
 										<div class="metric">
-											<h6 className="label">Height</h6>
+											<h6 className="label">Height (m)</h6>
 											<p>{ selectedBuoy.processedData.swellHeight 
-												? selectedBuoy.processedData.swellHeight + " m" 
+												? selectedBuoy.processedData.swellHeight 
 												: "-" 
 											}</p>
 										</div>
 									</div>
 									<div className="observation-small sea-state">
 										<h5>Sea State <span className="icon"><IconSeaState /></span></h5>
-										<p>-</p>
+										<p className="level-moderate">Moderate</p>
 									</div>
 									<div className="observation-small sea-state">
 										<h5>Surface Temp <span className="icon"><IconTemperature /></span></h5>
@@ -320,40 +349,39 @@ function App(props) {
 								<h4>Historical Observations</h4>
 								<div className="historic-observations">
 									<div className="chart-wrapper">
-										<h5>Wind <span className="icon"><IconWind /></span></h5>
-										<p>Chart</p>
-									</div>
-									<div className="chart-wrapper">
-										<h5>Swell <span className="icon"><IconSwell /></span></h5>
-										<Line 
-											options={ windSpeedOptions } 
-											data={ selectedBuoy.chartData.swellHeight } 
+										<h5><span className="icon"><IconWind /></span> Wind</h5>
+										<LineChart
+											data={ selectedBuoy.chartData.windSpeed }
+											heading={ "Wind Speed (m/s)" }
 										/>
 									</div>
 									<div className="chart-wrapper">
-										<h5>Seas <span className="icon"><IconSeaState /></span></h5>
-										<p>Chart</p>
-									</div>
-									<div className="chart-wrapper">
-										<h5>Wind <span className="icon"><IconWind /></span></h5>
-										<Line 
-											options={ windSpeedOptions } 
-											data={ selectedBuoy.chartData.windSpeed } 
+										<h5><span className="icon"><IconSwell /></span> Swell</h5>
+										<LineChart
+											data={ selectedBuoy.chartData.swellHeight }
+											heading="Swell (m)"
 										/>
 									</div>
 									<div className="chart-wrapper">
-										<h5>Surface Temperature <span className="icon"><IconTemperature /></span></h5>
-										<Line 
-											options={ windSpeedOptions } 
-											data={ selectedBuoy.chartData.surfaceTemperature } 
+										<h5><span className="icon"><IconSeaState /></span> Seas</h5>
+										<LineChart
+											data={ selectedBuoy.chartData.swellHeight }
+											heading="Swell (m)"
 										/>
 									</div>
 									<div className="chart-wrapper">
-										<h5>Tide <span className="icon"><IconTide /></span></h5>
+										<h5><span className="icon"><IconTemperature /></span> Surface Temperature</h5>
+										<LineChart
+											data={ selectedBuoy.chartData.surfaceTemperature }
+											heading={ "Temperature (\u2103)" }
+										/>
+									</div>
+									<div className="chart-wrapper">
+										<h5><span className="icon"><IconTide /></span> Tide</h5>
 										<p>Chart</p>
 									</div>
 									<div className="chart-wrapper">
-										<h5>Barometer <span className="icon"><IconBarometer /></span></h5>
+										<h5><span className="icon"><IconBarometer /></span> Barometer</h5>
 										<p>Chart</p>
 									</div>
 								</div>
