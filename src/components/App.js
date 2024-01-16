@@ -94,17 +94,19 @@ function App(props) {
 						const dataTypes = [
 							{ label: "Surface Temperature", col: "SST (degC)", key: "surfaceTemperature" }, 
 							{ label: "Wind Speed", col: "WindSpeed (m/s)", key: "windSpeed" },
-							{ label: "Swell", col: "Hsig (m)", key: "swellHeight" }
+							{ label: "Swell", col: "Hsig (m)", key: "swellHeight", rotate: "Dm (deg)" }
 						]
 						// Chart data structure
 						let chartData = {};
 						dataTypes.forEach( type => {
 							const { key } = type;
 							chartData[key] = {
-								datasets: [ { data: [] } ],
+								datasets: [ { data: [], rotation: [] } ],
 								labels: []
 							}
 						} );
+
+						// dataPoints.tp.rotation.push( reverseRotation( wave[] ) );
 
 						if( buoyDataPoints.length > 0 ) {
 							if( buoyDataPoints[0]?.data_points ) {
@@ -129,6 +131,9 @@ function App(props) {
 									if( value != "NaN" && parseInt(value) != -9999 ) {
 										chartData[key].datasets[0].data.push( { x: parseInt( buoy.timestamp ) * 1000, y: parseFloat( rawData[col] ) } );
 										chartData[key].labels.push( parseInt( buoy.timestamp ) * 1000 );
+										if( type.rotate ) {
+											chartData[key].datasets[0].rotation.push( parseFloat( rawData[type.rotate] ) );
+										}
 									}
 								} );
 
@@ -163,83 +168,6 @@ function App(props) {
 				.catch((e) => { console.debug(e); });
 		}
 	};
-
-	// const windSpeedXAxisCallback = ( tickValue, index, ticks ) => {
-	// 	console.log( ticks );
-	// 	return [
-	// 		dayjs( ticks[index].value ).format( "D MMM" ),
-	// 		dayjs( ticks[index].value ).format( "HH:mm" )
-	// 	];
-	// }
-
-	// const toolTipLabelsCallback = ( tooltipItem ) => {
-	// 	const { dataIndex, dataset } = tooltipItem;
-
-	// 	return 'Hello';
-	// }
-
-	// const windSpeedOptions = {
-	// 	responsive: true,
-	// 	plugins: {
-	// 		legend: false,
-	// 		title: {
-	// 			display: false,
-	// 		},
-	// 		callbacks: {
-	// 			label: toolTipLabelsCallback,
-	// 		}
-	// 	},
-	// 	scales: {
-	// 		x: {
-	// 		// 	type: 'linear',
-	// 			time: {
-	// 				tooltipFormat: "DD T HH:mm"
-	// 			},
-	// 			title: {
-	// 				display: true,
-	// 				color: "#000",
-	// 				text: "Time Range"
-	// 			},
-	// 			ticks: {
-	// 				maxTicksLimit: 7,
-	// 				autoSkip: false,
-	// 				maxRotation: 0,
-	// 				color: "#000",
-	// 				callbacks: windSpeedXAxisCallback
-	// 			},
-	// 			grid: {
-	// 				tickColor: "#000",
-	// 				color: "#e1e1e1"
-	// 			}
-	// 		},
-	// 		y: {
-	// 			type: "linear",
-	// 			display: true,
-	// 			position: "left",
-	// 			id: "y",
-	// 			gridLines: {
-	// 				drawOnChartArea: false
-	// 			},
-	// 			ticks: {
-	// 				// beginAtZero: true,
-	// 				// min: 0,
-	// 				// max: 25,
-	// 				maxTicksLimit: 6,
-	// 				color: "#000"
-	// 			},
-	// 			title: {
-	// 				display: true,
-	// 				text: "Wind Speed",
-	// 				color: "#000"
-	// 			},
-	// 			grid: {
-	// 				tickColor: "#000",
-	// 				color: "#e1e1e1",
-	// 				drawOnChartArea: false
-	// 			}
-	// 		}
-	// 	}
-	// };
 
 	return (
 		buoys.length > 0
