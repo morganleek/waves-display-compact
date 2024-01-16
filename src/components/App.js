@@ -93,8 +93,8 @@ function App(props) {
 						// Data types
 						const dataTypes = [
 							{ label: "Surface Temperature", col: "SST (degC)", key: "surfaceTemperature" }, 
-							{ label: "Wind Speed", col: "WindSpeed (m/s)", key: "windSpeed" },
-							{ label: "Swell", col: "Hsig (m)", key: "swellHeight", rotate: "Dm (deg)" }
+							{ label: "Wind Speed", col: "WindSpeed (m/s)", key: "windSpeed", rotate: "WindDirec (deg)" },
+							{ label: "Swell", col: "Hsig (m)", key: "swellHeight" } // , rotate: "Dm (deg)"
 						]
 						// Chart data structure
 						let chartData = {};
@@ -253,7 +253,7 @@ function App(props) {
 									</div>
 									<div className="observation-small sea-state">
 										<h5>Sea State <span className="icon"><IconSeaState /></span></h5>
-										<p className="level-moderate">Moderate</p>
+										<p className="level-low">Low</p>
 									</div>
 									<div className="observation-small sea-state">
 										<h5>Surface Temp <span className="icon"><IconTemperature /></span></h5>
@@ -281,6 +281,7 @@ function App(props) {
 										<LineChart
 											data={ selectedBuoy.chartData.windSpeed }
 											heading={ "Wind Speed (m/s)" }
+											icon={ mapDetails.arrow_icon }
 										/>
 									</div>
 									<div className="chart-wrapper">

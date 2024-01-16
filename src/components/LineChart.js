@@ -20,7 +20,7 @@ ChartJS.register(
 const GRID_COLOUR = "#FFFFFF";
 const GRID_COLOUR_HALF = "#FFFFFF80";
 
-const LineChart = ( { data, heading } ) => {
+const LineChart = ( { data, heading, icon } ) => {
 	const start = Math.min( ...data.labels );
 	const end = Math.max( ...data.labels ); // ).format( "D MMM YYYY" );
 	
@@ -85,6 +85,17 @@ const LineChart = ( { data, heading } ) => {
 		}
 	}
 
+	// Arrow icons
+	let point = {};
+	if( data.datasets[0].rotation && icon ) {
+		let arrow = new Image( 16, 16 );
+		arrow.src = icon;
+		point = { pointStyle: arrow, radius: 10 };
+	}
+	else {
+		point = { pointStyle: 'circle' };
+	}
+
 	return (
 		data && (
 			<Line
@@ -97,7 +108,7 @@ const LineChart = ( { data, heading } ) => {
 				data={ { 
 					...data, 
 					datasets: [
-						{ ...data.datasets[0], borderColor: "#00000080" }
+						{ ...data.datasets[0], borderColor: "#00000080", ...point }
 					]
 				} } 
 			/>

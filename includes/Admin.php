@@ -40,6 +40,10 @@
 									array( 
 										'label' => 'Map Marker Icon',
 										'name' => 'maps_marker_icon',
+									),
+									array( 
+										'label' => 'Arrow Icon',
+										'name' => 'arrow_icon',
 									)
 								)
 							)

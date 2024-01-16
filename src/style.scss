@@ -127,6 +127,9 @@
 						font-size: 1.9rem;
 					}
 					&.sea-state {
+						.level-low {
+							color: #43997c;
+						}
 						.level-moderate {
 							color: #FFDC48;
 						}
