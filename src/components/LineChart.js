@@ -90,7 +90,7 @@ const LineChart = ( { data, heading, icon } ) => {
 	if( data.datasets[0].rotation && icon ) {
 		let arrow = new Image( 16, 16 );
 		arrow.src = icon;
-		point = { pointStyle: arrow, radius: 10 };
+		point = { radius: 10 }; // pointStyle: arrow, 
 	}
 	else {
 		point = { pointStyle: 'circle' };
@@ -109,6 +109,7 @@ const LineChart = ( { data, heading, icon } ) => {
 					...data, 
 					datasets: [
 						{ ...data.datasets[0], borderColor: "#00000080", ...point }
+						// { ...data.datasets[0], borderColor: "#00000080", ...point }
 					]
 				} } 
 			/>
