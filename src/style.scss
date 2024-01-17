@@ -144,14 +144,14 @@
 					color: #fff;
 					padding: 10px 15px;
 					border-radius: var(--wp--wac--radius);
-					h5 {
+					h5, h6 {
 						color: #fff;
 						display: flex;
 						align-items: center;
 						justify-content: space-between;
 						svg {
-							width: 30px;
-							height: 30px;
+							width: 24px;
+							height: 24px;
 						}
 					}
 					p {

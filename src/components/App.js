@@ -10,16 +10,6 @@ import { ReactComponent as IconSeaState } from '../images/icon-sea-state-cropped
 import { ReactComponent as IconTemperature } from '../images/icon-temperature-cropped.svg';
 import { ReactComponent as IconBarometer } from '../images/icon-barometer-cropped.svg';
 
-// Arrows 
-
-
-// Charts
-// import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
-// import { Line } from 'react-chartjs-2';
-
-// Date
-// import * as dayjs from 'dayjs'
-
 // Map
 import { Wrapper, Status } from "@googlemaps/react-wrapper";
 import Map from './Map';
@@ -27,10 +17,7 @@ import Map from './Map';
 import LineChart from "./LineChart";
 
 const generateArrow = ( fill ) => {
-	return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 46 52">' +
-		'<path fill="' + fill + '" d="M12.82,50.41c-.27,0-.5-.23-.5-.5v-25.5h-7.42c-1.09,0-1.98-.6-2.4-1.61s-.21-2.06.56-2.83L20.35,2.69c.71-.71,1.65-1.1,2.65-1.1s1.94.39,2.65,1.1l17.29,17.28c.77.77.98,1.83.56,2.83s-1.31,1.61-2.4,1.61h-7.78v25.5c0,.27-.23.5-.5.5H12.82Z"/>' +
-		'<path d="M23,3.09c.6,0,1.16.23,1.59.66l17.29,17.28c.45.45.34.94.24,1.2-.11.25-.38.68-1.01.68h-9.28v26H13.82v-26H4.9c-.64,0-.91-.43-1.01-.68-.11-.25-.21-.75.24-1.2L21.41,3.75c.42-.42.99-.66,1.59-.66M23,.09c-1.34,0-2.68.51-3.71,1.54L2,18.91c-2.58,2.58-.75,7,2.9,7h5.92v24c0,1.1.9,2,2,2h20c1.1,0,2-.9,2-2v-24h6.28c3.65,0,5.48-4.42,2.9-7L26.71,1.63c-1.03-1.03-2.37-1.54-3.71-1.54h0Z"/>' +
-	'</svg>';
+	return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 46 52" style="enable-background:new 0 0 46 52" xml:space="preserve"><path fill="' + fill + '" d="M33.2 1.6c.3 0 .5.2.5.5v25.5h7.4c1.1 0 2 .6 2.4 1.6.4 1 .2 2.1-.6 2.8L25.6 49.3c-.7.7-1.6 1.1-2.6 1.1s-1.9-.4-2.6-1.1L3.1 32c-.8-.8-1-1.8-.6-2.8s1.3-1.6 2.4-1.6h7.8V2.1c0-.3.2-.5.5-.5h20z"/><path d="M23 48.9c-.6 0-1.2-.2-1.6-.7L4.1 31c-.5-.5-.3-.9-.2-1.2.1-.2.4-.7 1-.7h9.3v-26h18v26h8.9c.6 0 .9.4 1 .7.1.2.2.8-.2 1.2L24.6 48.2c-.4.5-1 .7-1.6.7m0 3c1.3 0 2.7-.5 3.7-1.5L44 33.1c2.6-2.6.8-7-2.9-7h-5.9v-24c0-1.1-.9-2-2-2h-20c-1.1 0-2 .9-2 2v24H4.9c-3.7 0-5.5 4.4-2.9 7l17.3 17.3c1 1 2.4 1.5 3.7 1.5z"/></svg>';
 }
 
 const mapRender = ( status ) => {
@@ -40,16 +27,6 @@ const mapRender = ( status ) => {
 	}
 	return <IconLoading />;
 }
-
-// ChartJS.register(
-//   CategoryScale,
-//   LinearScale,
-//   PointElement,
-//   LineElement,
-//   Title,
-//   Tooltip,
-//   Legend
-// );
 
 const degreesToDirection = degrees => {
 	const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
@@ -116,8 +93,10 @@ function App(props) {
 				.then(response => {
 					if (response.status == 200) {
 						const buoyDataPoints = response.data.data;
+						
 						// Most recent event
 						let processedData = {};
+
 						// Data types
 						const dataTypes = [
 							{ 
@@ -133,49 +112,49 @@ function App(props) {
 							},
 							{ 
 								label: "Swell", 
-								col: "Hsig (m)", 
+								col: "Hsig_swell (m)", 
 								key: "swellHeight" 
+							},
+							{ 
+								label: "Seas", 
+								col: "Hsig_sea (m)", 
+								key: "seasHeight" 
 							},
 							{
 								label: "Barometer",
-								col: "value",
+								col: "Pressure (hPa)",
 								key: "barometer"
 							}
 						]
+
 						// Chart data structure
 						let chartData = {};
 						dataTypes.forEach( type => {
 							const { key } = type;
 							chartData[key] = {
-								datasets: [ { data: [], rotation: [], pointStyle: [] } ],
+								datasets: [ { key, data: [], rotation: [], pointStyle: [] } ],
 								labels: []
 							}
 						} );
 
 						// dataPoints.tp.rotation.push( reverseRotation( wave[] ) );
 
+						// First of all values for box display
 						if( buoyDataPoints.length > 0 ) {
 							if( buoyDataPoints[0]?.data_points ) {
-								// let processedData = {};
 								const unprocessedData = JSON.parse(buoyDataPoints[0]?.data_points);
 								processedData.timeStampUTC = unprocessedData['Timestamp (UTC)'];
 								processedData.surfaceTemperature = unprocessedData['SST (degC)'] != "-9999.0" ? parseFloat( unprocessedData['SST (degC)'] ) : null;
-								processedData.swellHeight = unprocessedData['Hsig (m)'] != "-9999.00" ? parseFloat( unprocessedData['Hsig (m)'] ) : null;
+								processedData.swellHeight = unprocessedData['Hsig_swell (m)'] != "-9999.00" ? parseFloat( unprocessedData['Hsig_swell (m)'] ) : null;
+								processedData.seasHeight = unprocessedData['Hsig_sea (m)'] != "-9999.00" ? parseFloat( unprocessedData[':'] ) : null;
 								processedData.swellDirection = unprocessedData['Dm (deg)'] != "-9999.00" ? degreesToDirection( unprocessedData['Dm (deg)'] ): null;
 								processedData.windDirection = unprocessedData['WindDirec (deg)'] != "-9999.00" ? degreesToDirection( unprocessedData['WindDirec (deg)'] ) : null;
 								processedData.windSpeed = unprocessedData['WindSpeed (m/s)'] != "-9999.00" ? parseFloat( unprocessedData['WindSpeed (m/s)'] ) : null;
-								processedData.barometer = unprocessedData['value'] != "-9999.00" ? parseFloat( unprocessedData['value'] ) : null;
+								processedData.barometer = unprocessedData['Pressure (hPa)'] != "-9999.00" ? parseFloat( unprocessedData['Pressure (hPa)'] ) : null;
 							}
 
 							// Mod value
 							const skipMod = Math.ceil( buoyDataPoints.length / MAX_CHART_ITEMS );
-
-							// Icon 
-							let arrow = new Image( 16, 16 );
-							arrow.src = "data:image/svg+xml," + encodeURIComponent( generateArrow( "#ff7d4b" ) );
-							// arrow.src = mapDetails.arrow_icon;
-
-							// const point = { pointStyle: [], radius: 10 };
 
 							// Wind Speed
 							buoyDataPoints.forEach( ( buoy, index ) => {
@@ -297,23 +276,26 @@ function App(props) {
 										</div>
 									</div>
 									<div className="observation-small sea-state">
-										<h5>Sea State <span className="icon"><IconSeaState /></span></h5>
+										<h6>Sea State <span className="icon"><IconSeaState /></span></h6>
 										<p className="level-low">Low</p>
 									</div>
 									<div className="observation-small sea-state">
-										<h5>Surface Temp <span className="icon"><IconTemperature /></span></h5>
+										<h6>Surface Temp ({ "\u2103" })<span className="icon"><IconTemperature /></span></h6>
 										<p>{ selectedBuoy.processedData.surfaceTemperature 
-											? selectedBuoy.processedData.surfaceTemperature + String.fromCharCode(176) 
+											? parseFloat( selectedBuoy.processedData.surfaceTemperature ).toFixed(1)
 											: "-" 
 										}</p>
 									</div>
 									<div className="observation-small sea-state">
-										<h5>Tide <span className="icon"><IconTide /></span></h5>
+										<h6>Tide <span className="icon"><IconTide /></span></h6>
 										<p>-</p>
 									</div>
 									<div className="observation-small sea-state">
-										<h5>Barometer <span className="icon"><IconBarometer /></span></h5>
-										<p>-</p>
+										<h6>Barometer (hSig)<span className="icon"><IconBarometer /></span></h6>
+										<p>{ selectedBuoy.processedData.barometer 
+											? parseInt( selectedBuoy.processedData.barometer )
+											: "-" 
+										}</p>
 									</div>
 								</div>
 								<div className="coastal-warnings">
@@ -339,7 +321,7 @@ function App(props) {
 									<div className="chart-wrapper">
 										<h5><span className="icon"><IconSeaState /></span> Seas</h5>
 										<LineChart
-											data={ selectedBuoy.chartData.swellHeight }
+											data={ selectedBuoy.chartData.seasHeight }
 											heading="Seas (m)"
 										/>
 									</div>
@@ -355,6 +337,7 @@ function App(props) {
 										<p>Chart</p>
 									</div>
 									<div className="chart-wrapper">
+										{ console.log( selectedBuoy.chartData.barometer ) }
 										<h5><span className="icon"><IconBarometer /></span> Barometer</h5>
 										<LineChart
 											data={ selectedBuoy.chartData.barometer }

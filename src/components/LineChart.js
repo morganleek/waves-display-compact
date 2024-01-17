@@ -1,7 +1,7 @@
 // React
-import { useState } from "@wordpress/element";
+// import { useState } from "@wordpress/element";
 // Charts
-import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 // Date
 import * as dayjs from 'dayjs'
@@ -12,8 +12,7 @@ ChartJS.register(
   PointElement,
   LineElement,
   Title,
-  Tooltip,
-  Legend
+  Tooltip
 );
 
 
@@ -39,6 +38,26 @@ const LineChart = ( { data, heading, icon } ) => {
 				legend: false,
 				title: {
 					display: false,
+				},
+				tooltip: {
+					callbacks: {
+						title: ( { label } ) => {
+							return dayjs( label ).format( "D MMM h:mma" );
+						},
+						label: ( { dataset, datasetIndex: i } ) => {
+							switch( dataset.key ) {
+								case 'windSpeed':
+									return dataset.data[i].y + "m/s (" + dataset.rotation[i] + "\u00B0)";
+								case 'swellHeight':
+								case 'seasHeight':
+									return dataset.data[i].y + "m";
+								case 'surfaceTemperature':
+									return dataset.data[i].y + "\u2103"; // Degrees C
+								case 'barometer':
+									return dataset.data[i].y + "hPa"; // \u3371
+							}
+						}
+					}
 				}
 			},
 			scales: {
@@ -101,15 +120,12 @@ const LineChart = ( { data, heading, icon } ) => {
 			<Line
 				options={ generateConfig( { 
 					xTitle: dayjs( start ).format( "D MMM YYYY" ) + " - " + dayjs( end ).format( "D MMM YYYY" ),
-					yTitle: heading,
-					// xMin: start,
-					// xMax: end
+					yTitle: heading
 				} ) } 
 				data={ { 
 					...data, 
 					datasets: [
 						{ ...data.datasets[0], borderColor: "#00000080", ...point }
-						// { ...data.datasets[0], borderColor: "#00000080", ...point }
 					]
 				} } 
 			/>
