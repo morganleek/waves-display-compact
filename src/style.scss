@@ -26,11 +26,13 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
+
 		// appearance: none;
     // user-select: none;
     border-radius: var(--wp--wac--radius);
     cursor: pointer;
-    font: inherit;
+    font: var(--wp--preset--font-family--rubik);
+		font-weight: 300;
     letter-spacing: inherit;
     padding: 4px 4px 5px;
     border: 0;
@@ -142,7 +144,7 @@
 						aspect-ratio: 1.1;
 						align-items: center;
 						svg {
-							width: 50px;
+							width: 40px;
 						}
 					}
 				}
