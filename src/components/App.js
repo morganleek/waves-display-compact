@@ -291,7 +291,7 @@ function App(props) {
 										<p>-</p>
 									</div>
 									<div className="observation-small sea-state">
-										<h6>Barometer (hSig)<span className="icon"><IconBarometer /></span></h6>
+										<h6>Barometer (hPa)<span className="icon"><IconBarometer /></span></h6>
 										<p>{ selectedBuoy.processedData.barometer 
 											? parseInt( selectedBuoy.processedData.barometer )
 											: "-" 
