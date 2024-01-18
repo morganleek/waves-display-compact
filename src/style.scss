@@ -10,7 +10,9 @@
 
 .wp-block-waves-display-compact {
 	--wp--wac--radius: 6px;
-
+	max-width: 1200px;
+	margin-left: auto;
+	margin-right: auto;
 	background-color: #048cc2;
 	color: #fff;
 	min-height: 392px;
@@ -74,6 +76,12 @@
 			display: grid;
 			grid-template-columns: 1fr 1fr;
 			gap: 10px;
+			@media (min-width: 600px) {
+				grid-template-columns: repeat(4, 1fr);
+			}
+			// @media (min-width: 1000px) {
+			// 	grid-template-columns: repeat(8, 1fr);
+			// }
 			& > * {
 				// background: #fbfbfb;
 				&.observation {
@@ -172,13 +180,34 @@
 		}
 	}
 	.coastal-warnings {
-		color: #a80000;
-		text-align: center;
+		& > p {
+			color: #94000D;
+			text-align: center;
+			background: #ffbdc2;
+			border: 1px solid #94000D;
+			margin: 10px auto;
+			border-radius: 5px;
+			font-size: 0.9rem;
+			padding: 8px 30px;
+			a {
+				color: #94000D;
+			}
+		}
 	}
 	.historic-observations {
+		@media (min-width: 1000px) {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 20px;
+			align-items: start;
+		}
 		.chart-wrapper {
+			min-width: 0;
 			& + .chart-wrapper {
 				margin-top: 20px;
+				@media (min-width: 1000px) {
+					margin-top: 0;
+				}
 			}
 			h5 {
 				color: #fff;
@@ -195,7 +224,7 @@
 		// }
 	}
 	.map-wrapper {
-		max-width: 620px;
+		// max-width: 620px;
 		height: 392px;
 		text-align: center;
 		#map {

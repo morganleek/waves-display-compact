@@ -299,7 +299,7 @@ function App(props) {
 									</div>
 								</div>
 								<div className="coastal-warnings">
-									<p>Check BOM Coastal Warnings</p>
+									<p><a href="http://www.bom.gov.au/marine/" target="_blank">Check BOM Coastal Warnings</a></p>
 								</div>
 								<h4>Historical Observations</h4>
 								<div className="historic-observations">
