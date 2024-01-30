@@ -24,6 +24,7 @@
 		"chart.js": "^4.4.1",
 		"classnames": "^2.5.1",
 		"dayjs": "^1.11.10",
-		"react-chartjs-2": "^5.2.0"
+		"react-chartjs-2": "^5.2.0",
+		"rss-parser": "^3.13.0"
 	}
 }

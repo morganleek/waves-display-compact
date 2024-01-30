@@ -16,6 +16,8 @@
 	background-color: #048cc2;
 	color: #fff;
 	min-height: 392px;
+	padding-left: 0 !important;
+	padding-right: 0 !important;
 	// padding: 20px;
 	h3, h4, h5, h6 {
 		margin: 0;
@@ -62,15 +64,32 @@
 			color: #fff;
 		}
 		.selector {
-			grid-area: 1 / 2 / 2 / 3;
+			// grid-area: 1 / 2 / 2 / 3;
+			grid-column: span 2;
 			display: flex;
 			justify-content: flex-end;
+			select {
+				background: transparent;
+				color: #fff;
+				width: 100%;
+				text-align: center;
+				font-family: (--wp--preset--font-family--rubik);
+				font-size: 1.5rem;
+				border-bottom: solid 2px #fff;
+				border-radius: 0;
+				letter-spacing: 0.05em;
+				padding-left: 20px;
+				padding-right: 20px;
+				&:focus-visible {
+					outline: none;
+				}		
+			}
 		}
 	}
 
 	.latest-observations {
 		& > h4 {
-			margin: 1em 0 .35em;
+			margin: 1.25em 0 0.75em;
 			color: #fff;
 		}
 		.observations {
@@ -97,7 +116,9 @@
 					display: grid;
 					justify-content: space-between;
 					grid-template-columns: repeat(3, 1fr);
-					gap: 10px;
+					gap: 10px 5px;
+					padding-left: 10px;
+					padding-right: 10px;
 					& > * {
 						// border: 1px solid #000;
 						// background: #0f0f0fcc;
@@ -113,12 +134,17 @@
 						align-items: center;
 						gap: 12px;
 						.label {
-							color: #fff;
+							color: #59c4ef; // #fff;
 						}
 						p {
 							margin: 0;
 							font-size: 1.9rem;
 							line-height: 1em;
+							height: 31px;
+							small {
+								font-size: 1.1rem;
+								margin-left: 2px;
+							}
 						}
 					}
 					.icon {
@@ -138,11 +164,13 @@
 						}
 					}
 					h5 {
+						color: #fff; // #048cc2;
 						display: flex;
 						flex-direction: column;
 						justify-content: center;
 						aspect-ratio: 1.1;
 						align-items: center;
+						gap: 3px;
 						svg {
 							width: 40px;
 						}
@@ -154,33 +182,73 @@
 					color: #fff;
 					padding: 10px 15px;
 					border-radius: var(--wp--wac--radius);
+					&.sea-barometer,
+					&.sea-tide {
+						.icon, svg {
+							width: 20px;
+							height: 20px;
+						}
+					}
+					&.sea-barometer {
+						h5, h6 {
+							gap: 8px;
+						}
+					}
+					&.sea-state {
+						.icon, svg {
+							width: 22px;
+							height: 22px;
+						}	
+					}
+					&.sea-tide {
+						h5, h6 {
+							gap: 5px;
+						}
+					}
+					&.sea-temperature {
+						h5, h6 {
+							gap: 3px;
+						}
+					}
 					@media (min-width: 768px) {
 						// aspect-ratio: 2;
 						padding-top: 20px;
 						padding-bottom: 20px;
 					}
 					h5, h6 {
-						color: #fff;
+						color: #59c4ef; // #fff;
 						display: flex;
 						align-items: center;
 						justify-content: center;
-						gap: 15px;
+						gap: 8px;
+						.icon,
 						svg {
 							width: 24px;
 							height: 24px;
+							* {
+								stroke: #59c4ef !important;
+							}
 						}
 					}
 					p {
 						text-align: center;
-						margin: 0;
+						margin: 4px 0 0;
 						font-size: 1.9rem;
+						sup,
+						small {
+							font-size: 1.1rem;
+							margin-left: 2px;
+						}
 					}
 					&.sea-state {
-						.level-low {
-							color: #43997c;
+						.level-0 {
+							color: #64d8b1;
 						}
-						.level-moderate {
+						.level-1 {
 							color: #FFDC48;
+						}
+						.label-2 {
+							color: #dc3545;
 						}
 					}
 				}

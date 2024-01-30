@@ -37,6 +37,10 @@
 										'label' => 'Map Centre Lng Max',
 										'name' => 'maps_lng_max',
 									),
+									array(
+										'label' => 'RSS Url',
+										'name' => 'rss_url'
+									),
 									array( 
 										'label' => 'Map Marker Icon',
 										'name' => 'maps_marker_icon',

@@ -38,13 +38,23 @@ const degreesToDirection = degrees => {
 
 function App(props) {
 	const [buoys, setBuoys] = useState([]);
+	const [buoyId, setBuoyId] = useState(null);
 	const [selectedBuoy, setSelectedBuoy] = useState(null);
 	const [mapDetails, setMapDetails] = useState(null);
+	const [seaState, setSeaState] = useState(null);
+	const [rss, setRss] = useState(null);
+	const [maxItems, setMaxItems] = useState( window.innerWidth < 450 ? 50 : 150 );
+	const [buoyDataPoints, setBuoyDataPoints] = useState(null);
 
 	const arrowColours = [
 		"#eff8fd", "#ccf0fe", "#9cdbfc", 
 		"#acffa7", "#7ede78", "#e6e675", 
 		"#ff7d4b", "#e5270c", "#990000"
+	];
+	const seaStates = [
+		{ label: 'Low', colour: "#43997c" },
+		{ label: 'Moderate', colour: "#ffc100"},
+		{ label: 'Extreme', colour: '#dc3545' }
 	];
 	const arrowImages = [];
 
@@ -67,126 +77,152 @@ function App(props) {
 				})
 				.catch((e) => { console.debug(e); });
 		}
+		// RSS
+		// if( !rss ) {
+		// 	fetch('http://www.bom.gov.au/fwo/IDZ00072.warnings_marine_tas.xml')
+		// 		.then(response => response.text())
+		// 		.then(str => new window.DOMParser().parseFromString(str, "text/xml"))
+		// 		.then(data => {
+		// 			console.log(data);
+		// 			setRss( true );
+		// 		} );
+		// }
 
 		// Fetch Map details
-		axios
-			.get('/wp-json/wac/v1/map')
-			.then(response => {
-				if (response.status == 200) {
-					setMapDetails( response.data );
-				}
-			})
-			.catch( e => { console.debug(e) } );
-	}, []);
+		if( mapDetails == null ) {
 
-	const updateBuoy = (buoyId) => {
-		// Max chart items 
-		const MAX_CHART_ITEMS = 100;
+			axios
+				.get('/wp-json/wac/v1/map')
+				.then(response => {
+					if (response.status == 200) {
+						setMapDetails( response.data );
+					}
+				})
+				.catch( e => { console.debug(e) } );
+		}
+
+		// Draw chart
+		if( buoyDataPoints ) {
+			// Most recent event
+			let processedData = {};
+
+			// Data types
+			const dataTypes = [
+				{ 
+					label: "Surface Temperature", 
+					col: "SST (degC)", 
+					key: "surfaceTemperature", 
+				}, 
+				{ 
+					label: "Wind Speed", 
+					col: "WindSpeed (m/s)", 
+					key: "windSpeed", 
+					rotate: "WindDirec (deg)",
+				},
+				{ 
+					label: "Swell", 
+					col: "Hsig_swell (m)", 
+					key: "swellHeight" 
+				},
+				{ 
+					label: "Seas", 
+					col: "Hsig_sea (m)", 
+					key: "seasHeight" 
+				},
+				{
+					label: "Barometer",
+					col: "Pressure (hPa)",
+					key: "barometer"
+				}
+			]
+
+			// Chart data structure
+			let chartData = {};
+			dataTypes.forEach( type => {
+				const { key } = type;
+				chartData[key] = {
+					datasets: [ { key, data: [], rotation: [], pointStyle: [] } ],
+					labels: []
+				}
+			} );
+
+			// dataPoints.tp.rotation.push( reverseRotation( wave[] ) );
+
+			// First of all values for box display
+			if( buoyDataPoints.length > 0 ) {
+				if( buoyDataPoints[0]?.data_points ) {
+					const unprocessedData = JSON.parse(buoyDataPoints[0]?.data_points);
+					processedData.timeStampUTC = unprocessedData['Timestamp (UTC)'];
+					processedData.surfaceTemperature = unprocessedData['SST (degC)'] != "-9999.0" ? parseFloat( unprocessedData['SST (degC)'] ) : null;
+					processedData.swellHeight = unprocessedData['Hsig_swell (m)'] != "-9999.00" ? parseFloat( unprocessedData['Hsig_swell (m)'] ) : null;
+					processedData.seasHeight = unprocessedData['Hsig_sea (m)'] != "-9999.00" ? parseFloat( unprocessedData[':'] ) : null;
+					processedData.swellDirection = unprocessedData['Dm (deg)'] != "-9999.00" ? degreesToDirection( unprocessedData['Dm (deg)'] ): null;
+					processedData.windDirection = unprocessedData['WindDirec (deg)'] != "-9999.00" ? degreesToDirection( unprocessedData['WindDirec (deg)'] ) : null;
+					processedData.windSpeed = unprocessedData['WindSpeed (m/s)'] != "-9999.00" ? parseFloat( unprocessedData['WindSpeed (m/s)'] ) : null;
+					processedData.barometer = unprocessedData['Pressure (hPa)'] != "-9999.00" ? parseFloat( unprocessedData['Pressure (hPa)'] ) : null;
+					
+					// Work out sea state
+					setSeaState(0);
+				}
+
+				const buoyDataPointsClone = [ ...buoyDataPoints ];
+				buoyDataPointsClone.splice(0, maxItems ).forEach( ( buoy, index ) => {
+					// Skip nth items to ensure limits
+					// if( index % skipMod === 0 ) {
+					const rawData = JSON.parse(buoy.data_points);
+
+					// Process for each data type
+					dataTypes.forEach( type => {
+						const { col, key } = type;
+						const value = rawData[col];
+						if( value != "NaN" && parseInt(value) != -9999 ) {
+							chartData[key].datasets[0].data.push( { x: parseInt( buoy.timestamp ) * 1000, y: parseFloat( rawData[col] ) } );
+							chartData[key].labels.push( parseInt( buoy.timestamp ) * 1000 );
+							if( type.rotate ) {
+								const bracket = Math.floor( parseInt( rawData[col] / 2 ) );
+								chartData[key].datasets[0].rotation.push( parseFloat( rawData[type.rotate] ) );
+								chartData[key].datasets[0].pointStyle.push( arrowImages[ bracket > 8 ? 8 : bracket ] );
+							}
+						}
+					} );
+					// }
+				} );
+			}
+			
+			setSelectedBuoy( {
+				buoyId,
+				processedData, 
+				chartData 
+			} );
+			// Setup buoys
+			// setSelectedBuoy( { ...response.data, processedData, chartData } );
+		}
+	}, [buoyDataPoints, maxItems]);
+
+	// Change max items if screen width changes
+	let resizeTimeoutId;
+	window.addEventListener( 'resize', () => {
+		clearTimeout(resizeTimeoutId);
+		// Only run after 500ms
+		resizeTimeoutId = setTimeout( () => {
+			setMaxItems( window.innerWidth < 450 ? 50 : 150 );
+		}, 500 );
+	} );
+
+	const updateBuoy = (newBuoyId) => {
 		// Set ID except when reselecting the default 
-		if (buoyId > 0) {
+		if (newBuoyId > 0) {
 			// Fetch buoy values
 			axios.get('/wp-admin/admin-ajax.php?action=waf_rest_list_buoy_datapoints', {
 					params: {
-						id: buoyId
+						id: newBuoyId
 					}
 				})
 				.then(response => {
 					if (response.status == 200) {
-						const buoyDataPoints = response.data.data;
-						
-						// Most recent event
-						let processedData = {};
-
-						// Data types
-						const dataTypes = [
-							{ 
-								label: "Surface Temperature", 
-								col: "SST (degC)", 
-								key: "surfaceTemperature", 
-							}, 
-							{ 
-								label: "Wind Speed", 
-								col: "WindSpeed (m/s)", 
-								key: "windSpeed", 
-								rotate: "WindDirec (deg)",
-							},
-							{ 
-								label: "Swell", 
-								col: "Hsig_swell (m)", 
-								key: "swellHeight" 
-							},
-							{ 
-								label: "Seas", 
-								col: "Hsig_sea (m)", 
-								key: "seasHeight" 
-							},
-							{
-								label: "Barometer",
-								col: "Pressure (hPa)",
-								key: "barometer"
-							}
-						]
-
-						// Chart data structure
-						let chartData = {};
-						dataTypes.forEach( type => {
-							const { key } = type;
-							chartData[key] = {
-								datasets: [ { key, data: [], rotation: [], pointStyle: [] } ],
-								labels: []
-							}
-						} );
-
-						// dataPoints.tp.rotation.push( reverseRotation( wave[] ) );
-
-						// First of all values for box display
-						if( buoyDataPoints.length > 0 ) {
-							if( buoyDataPoints[0]?.data_points ) {
-								const unprocessedData = JSON.parse(buoyDataPoints[0]?.data_points);
-								processedData.timeStampUTC = unprocessedData['Timestamp (UTC)'];
-								processedData.surfaceTemperature = unprocessedData['SST (degC)'] != "-9999.0" ? parseFloat( unprocessedData['SST (degC)'] ) : null;
-								processedData.swellHeight = unprocessedData['Hsig_swell (m)'] != "-9999.00" ? parseFloat( unprocessedData['Hsig_swell (m)'] ) : null;
-								processedData.seasHeight = unprocessedData['Hsig_sea (m)'] != "-9999.00" ? parseFloat( unprocessedData[':'] ) : null;
-								processedData.swellDirection = unprocessedData['Dm (deg)'] != "-9999.00" ? degreesToDirection( unprocessedData['Dm (deg)'] ): null;
-								processedData.windDirection = unprocessedData['WindDirec (deg)'] != "-9999.00" ? degreesToDirection( unprocessedData['WindDirec (deg)'] ) : null;
-								processedData.windSpeed = unprocessedData['WindSpeed (m/s)'] != "-9999.00" ? parseFloat( unprocessedData['WindSpeed (m/s)'] ) : null;
-								processedData.barometer = unprocessedData['Pressure (hPa)'] != "-9999.00" ? parseFloat( unprocessedData['Pressure (hPa)'] ) : null;
-							}
-
-							// Mod value
-							const skipMod = Math.ceil( buoyDataPoints.length / MAX_CHART_ITEMS );
-
-							// Wind Speed
-							buoyDataPoints.forEach( ( buoy, index ) => {
-								// Skip nth items to ensure limits
-								if( index % skipMod === 0 ) {
-									const rawData = JSON.parse(buoy.data_points);
-	
-									// Process for each data type
-									dataTypes.forEach( type => {
-										const { col, key } = type;
-										const value = rawData[col];
-										if( value != "NaN" && parseInt(value) != -9999 ) {
-											chartData[key].datasets[0].data.push( { x: parseInt( buoy.timestamp ) * 1000, y: parseFloat( rawData[col] ) } );
-											chartData[key].labels.push( parseInt( buoy.timestamp ) * 1000 );
-											if( type.rotate ) {
-												const bracket = Math.floor( parseInt( rawData[col] / 2 ) );
-												chartData[key].datasets[0].rotation.push( parseFloat( rawData[type.rotate] ) );
-												chartData[key].datasets[0].pointStyle.push( arrowImages[ bracket > 8 ? 8 : bracket ] );
-											}
-										}
-									} );
-								}
-							} );
-						}
-						
-						setSelectedBuoy( {
-							buoyId,
-							processedData, 
-							chartData 
-						} );
-						// Setup buoys
-						// setSelectedBuoy( { ...response.data, processedData, chartData } );
+						// const buoyDataPoints = response.data.data;
+						setBuoyId(newBuoyId);
+						setBuoyDataPoints(response.data.data);
 					}
 				})
 				.catch((e) => { console.debug(e); });
@@ -198,10 +234,10 @@ function App(props) {
 			? (
 				<>
 					<div className="heading">
-						{ selectedBuoy
+						{/* { selectedBuoy
 							? <h4>{ buoys.filter( buoy => parseInt(buoy.id) == selectedBuoy.buoyId ).map( buoy => buoy.web_display_name ) }</h4>
 							: undefined
-						}
+						} */}
 						<div className="selector">
 							<select onChange={e => updateBuoy(e.target.value)}>
 								<option value="0">Select a buoy</option>
@@ -241,7 +277,10 @@ function App(props) {
 							<div className="latest-observations">
 								<h4>Latest observations</h4>
 								<div className="observations">
-									<div className="observation wind">
+									<div 
+										className="observation wind"
+										onClick={ () => { document.querySelector('.chart-wrapper.wind')?.scrollIntoView( { behavior: 'smooth' } ) } }	
+									>
 											<h5>Wind <IconWind /></h5>
 										<div class="metric">
 											<h6 className="label">Direction</h6>
@@ -251,14 +290,17 @@ function App(props) {
 											}</p>
 										</div>
 										<div class="metric">
-											<h6 className="label">Speed (m/s)</h6>
-											<p>{ selectedBuoy.processedData.windSpeed
-												? selectedBuoy.processedData.windSpeed 
-												: "-" 
-											}</p>
+											<h6 className="label">Speed</h6>
+											{ selectedBuoy.processedData.windSpeed
+												? ( <p>{ selectedBuoy.processedData.windSpeed }<small>m/s</small></p> )
+												: ( <p>-</p> )
+											}
 										</div>
 									</div>
-									<div className="observation swell">
+									<div 
+										className="observation swell"
+										onClick={ () => { document.querySelector('.chart-wrapper.swell')?.scrollIntoView( { behavior: 'smooth' } ) } }	
+									>
 										<h5>Swell <IconSwell /></h5>
 										<div class="metric">
 											<h6 className="label">Direction</h6>
@@ -268,42 +310,63 @@ function App(props) {
 											}</p>
 										</div>
 										<div class="metric">
-											<h6 className="label">Height (m)</h6>
-											<p>{ selectedBuoy.processedData.swellHeight 
-												? selectedBuoy.processedData.swellHeight 
-												: "-" 
-											}</p>
+											<h6 className="label">Height</h6>
+											{ selectedBuoy.processedData.swellHeight 
+												? ( <p>{ selectedBuoy.processedData.swellHeight }<small>m</small></p> )
+												: ( <p>-</p> )
+											}
 										</div>
 									</div>
-									<div className="observation-small sea-state">
-										<h6>Sea State <span className="icon"><IconSeaState /></span></h6>
-										<p className="level-low">Low</p>
+									<div 
+										className="observation-small sea-state"
+										onClick={ () => { document.querySelector('.chart-wrapper.sea-state')?.scrollIntoView( { behavior: 'smooth' } ) } }
+									>
+										<h6><span className="icon"><IconSeaState /></span> Sea State</h6>
+										{ seaState != null
+											? ( <p className={ "level-" + seaState }>{ seaStates[seaState].label }</p> )
+											: ( <p>-</p> )
+										}
 									</div>
-									<div className="observation-small sea-state">
-										<h6>Surface Temp ({ "\u2103" })<span className="icon"><IconTemperature /></span></h6>
-										<p>{ selectedBuoy.processedData.surfaceTemperature 
-											? parseFloat( selectedBuoy.processedData.surfaceTemperature ).toFixed(1)
-											: "-" 
-										}</p>
+									<div 
+										className="observation-small sea-temperature"
+										onClick={ () => { document.querySelector('.chart-wrapper.temperature')?.scrollIntoView( { behavior: 'smooth' } ) } }
+									>
+										<h6><span className="icon"><IconTemperature /></span> Surface Temp</h6>
+										{ selectedBuoy.processedData.surfaceTemperature 
+											? ( <p>{ parseFloat( selectedBuoy.processedData.surfaceTemperature ).toFixed(1)}<sup>{ "\u2103" }</sup></p> )
+											: ( <p>-</p> ) 
+										}
 									</div>
-									<div className="observation-small sea-state">
-										<h6>Tide <span className="icon"><IconTide /></span></h6>
+									<div 
+										className="observation-small sea-tide"
+										onClick={ () => { document.querySelector('.chart-wrapper.tide')?.scrollIntoView( { behavior: 'smooth' } ) } }
+									>
+										<h6><span className="icon"><IconTide /></span> Tide</h6>
 										<p>-</p>
 									</div>
-									<div className="observation-small sea-state">
-										<h6>Barometer (hPa)<span className="icon"><IconBarometer /></span></h6>
-										<p>{ selectedBuoy.processedData.barometer 
-											? parseInt( selectedBuoy.processedData.barometer )
-											: "-" 
-										}</p>
+									<div 
+										className="observation-small sea-barometer"
+										onClick={ () => { document.querySelector('.chart-wrapper.barometer')?.scrollIntoView( { behavior: 'smooth' } ) } }	
+									>
+										<h6><span className="icon"><IconBarometer /></span> Barometer</h6>
+										{ selectedBuoy.processedData.barometer 
+											? ( <p>{ parseInt( selectedBuoy.processedData.barometer ) }<small>hPa</small></p> )
+											: ( <p>-</p> )
+										}
 									</div>
 								</div>
-								<div className="coastal-warnings">
-									<p><a href="http://www.bom.gov.au/marine/" target="_blank">Check BOM Coastal Warnings</a></p>
-								</div>
+								
+								{ ( seaState && seaState > 1 ) 
+									? (
+										<div className="coastal-warnings">
+											<p><a href="http://www.bom.gov.au/marine/" target="_blank">Check BOM Coastal Warnings</a></p>
+										</div>
+									) 
+									: undefined
+								}
 								<h4>Historical Observations</h4>
 								<div className="historic-observations">
-									<div className="chart-wrapper">
+									<div className="chart-wrapper wind">
 										<h5><span className="icon"><IconWind /></span> Wind</h5>
 										<LineChart
 											data={ selectedBuoy.chartData.windSpeed }
@@ -311,33 +374,32 @@ function App(props) {
 											icon={ mapDetails.arrow_icon }
 										/>
 									</div>
-									<div className="chart-wrapper">
+									<div className="chart-wrapper swell">
 										<h5><span className="icon"><IconSwell /></span> Swell</h5>
 										<LineChart
 											data={ selectedBuoy.chartData.swellHeight }
 											heading="Swell (m)"
 										/>
 									</div>
-									<div className="chart-wrapper">
+									<div className="chart-wrapper sea-state">
 										<h5><span className="icon"><IconSeaState /></span> Seas</h5>
 										<LineChart
 											data={ selectedBuoy.chartData.seasHeight }
 											heading="Seas (m)"
 										/>
 									</div>
-									<div className="chart-wrapper">
+									<div className="chart-wrapper temperature">
 										<h5><span className="icon"><IconTemperature /></span> Surface Temperature</h5>
 										<LineChart
 											data={ selectedBuoy.chartData.surfaceTemperature }
 											heading={ "Temperature (\u2103)" }
 										/>
 									</div>
-									<div className="chart-wrapper">
+									<div className="chart-wrapper tide">
 										<h5><span className="icon"><IconTide /></span> Tide</h5>
 										<p>Chart</p>
 									</div>
-									<div className="chart-wrapper">
-										{ console.log( selectedBuoy.chartData.barometer ) }
+									<div className="chart-wrapper barometer">
 										<h5><span className="icon"><IconBarometer /></span> Barometer</h5>
 										<LineChart
 											data={ selectedBuoy.chartData.barometer }
