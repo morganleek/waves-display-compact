@@ -7,6 +7,9 @@
 		) );
 	} );
 
+	// Tides
+	// efad5012-3df3-4ad4-a326-5dd1daaf7c1d
+
 	// add_action( 'rest_api_init', function () {
 	// 	register_rest_route( 'wac/v1', '/rss', array(
 	// 		'methods' => 'GET',
