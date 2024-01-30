@@ -73,11 +73,12 @@
 				color: #fff;
 				width: 100%;
 				text-align: center;
-				font-family: (--wp--preset--font-family--rubik);
+				font-family: var(--wp--preset--font-family--rubik);
+				text-transform: uppercase;
 				font-size: 1.5rem;
 				border-bottom: solid 2px #fff;
 				border-radius: 0;
-				letter-spacing: 0.05em;
+				letter-spacing: 0.025em;
 				padding-left: 20px;
 				padding-right: 20px;
 				&:focus-visible {
@@ -180,7 +181,7 @@
 					background: #0f0f0fcc;
 					border: 1px solid #000;
 					color: #fff;
-					padding: 10px 15px;
+					padding: 10px;
 					border-radius: var(--wp--wac--radius);
 					&.sea-barometer,
 					&.sea-tide {
