@@ -45,6 +45,7 @@ function App(props) {
 	const [rss, setRss] = useState(null);
 	const [maxItems, setMaxItems] = useState( window.innerWidth < 450 ? 50 : 150 );
 	const [buoyDataPoints, setBuoyDataPoints] = useState(null);
+	const [buoyTideData, setBuoyTideData] = useState(null);
 
 	const arrowColours = [
 		"#eff8fd", "#ccf0fe", "#9cdbfc", 
@@ -102,7 +103,8 @@ function App(props) {
 		}
 
 		// Draw chart
-		if( buoyDataPoints ) {
+		if( buoyDataPoints && buoyTideData ) {
+			
 			// Most recent event
 			let processedData = {};
 
@@ -122,7 +124,8 @@ function App(props) {
 				{ 
 					label: "Swell", 
 					col: "Hsig_swell (m)", 
-					key: "swellHeight" 
+					key: "swellHeight",
+					rotate: "Dm (deg)"
 				},
 				{ 
 					label: "Seas", 
@@ -133,6 +136,11 @@ function App(props) {
 					label: "Barometer",
 					col: "Pressure (hPa)",
 					key: "barometer"
+				},
+				{
+					label: "Tides",
+					col: "Height (m)",
+					key: "tide"
 				}
 			]
 
@@ -180,7 +188,7 @@ function App(props) {
 							chartData[key].labels.push( parseInt( buoy.timestamp ) * 1000 );
 							if( type.rotate ) {
 								const bracket = Math.floor( parseInt( rawData[col] / 2 ) );
-								chartData[key].datasets[0].rotation.push( parseFloat( rawData[type.rotate] ) );
+								chartData[key].datasets[0].rotation.push( Math.floor( parseFloat( rawData[type.rotate] ) ) );
 								chartData[key].datasets[0].pointStyle.push( arrowImages[ bracket > 8 ? 8 : bracket ] );
 							}
 						}
@@ -188,6 +196,20 @@ function App(props) {
 					// }
 				} );
 			}
+
+			// Tides
+			if( buoyTideData.length > 0 ) {
+				// Table value
+				processedData.tide = parseFloat( buoyTideData[0]['height'] );
+
+				// Chart values
+				buoyTideData.forEach( ( tide ) => {
+					chartData['tide'].datasets[0].data.push( { x: parseInt( tide.timestamp ) * 1000, y: parseFloat( tide.height ) } );
+					chartData['tide'].labels.push( parseInt( tide.timestamp ) * 1000 );
+				} );
+			}
+
+			console.log( chartData );
 			
 			setSelectedBuoy( {
 				buoyId,
@@ -226,6 +248,19 @@ function App(props) {
 					}
 				})
 				.catch((e) => { console.debug(e); });
+			
+			// Fetch tide buoy data
+			axios.get('/wp-admin/admin-ajax.php?action=waf_rest_list_buoy_tide_data', {
+				params: {
+					id: newBuoyId
+				}
+			})
+			.then(response => {
+				if (response.status == 200) {
+					setBuoyTideData(response.data.data);
+				}
+			})
+			.catch((e) => { console.debug(e); });
 		}
 	};
 
@@ -342,7 +377,10 @@ function App(props) {
 										onClick={ () => { document.querySelector('.chart-wrapper.tide')?.scrollIntoView( { behavior: 'smooth' } ) } }
 									>
 										<h6><span className="icon"><IconTide /></span> Tide</h6>
-										<p>-</p>
+										{ selectedBuoy.processedData.tide 
+											? ( <p>{ parseFloat( selectedBuoy.processedData.tide ).toFixed(1) }<small>m</small></p> )
+											: ( <p>-</p> ) 
+										}
 									</div>
 									<div 
 										className="observation-small sea-barometer"
@@ -379,6 +417,7 @@ function App(props) {
 										<LineChart
 											data={ selectedBuoy.chartData.swellHeight }
 											heading="Swell (m)"
+											icon={ mapDetails.arrow_icon }
 										/>
 									</div>
 									<div className="chart-wrapper sea-state">
@@ -397,7 +436,10 @@ function App(props) {
 									</div>
 									<div className="chart-wrapper tide">
 										<h5><span className="icon"><IconTide /></span> Tide</h5>
-										<p>Chart</p>
+										<LineChart
+											data={ selectedBuoy.chartData.tide }
+											heading={ "Tide Height (m)" }
+										/>
 									</div>
 									<div className="chart-wrapper barometer">
 										<h5><span className="icon"><IconBarometer /></span> Barometer</h5>

@@ -9,6 +9,11 @@
 
 	// Tides
 	// efad5012-3df3-4ad4-a326-5dd1daaf7c1d
+	// Devonport, TAS
+	// https://api.willyweather.com.au/v2/ZWI2MzBlMmE3MTk3ZDE1NjU1M2FkZT/locations/10520.json
+	// https://api.willyweather.com.au/v2/ZWI2MzBlMmE3MTk3ZDE1NjU1M2FkZT/locations/10520/weather.json
+	//  Content-Type: application/json
+	//  x-payload: {"forecasts": ["tides"], "days": 1, "startDate": "2024-02-01"}
 
 	// add_action( 'rest_api_init', function () {
 	// 	register_rest_route( 'wac/v1', '/rss', array(
