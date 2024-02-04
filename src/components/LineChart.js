@@ -19,21 +19,30 @@ ChartJS.register(
 const GRID_COLOUR = "#FFFFFF";
 const GRID_COLOUR_HALF = "#FFFFFF80";
 
-const LineChart = ( { data, heading, icon } ) => {
+const LineChart = ( { data, heading, icon, smooth } ) => {
 	const start = Math.min( ...data.labels );
 	const end = Math.max( ...data.labels ); // ).format( "D MMM YYYY" );
 	
 	// Convert timestamp to formated date
 	const xAxisCallback = ( tickValue, index, ticks ) => {
+		// if( index + 1 === ticks.length ) {
+		// 	console.log( 'here' );
+		// 	return "";
+		// }
 		return [
 			dayjs( data.labels[index] ).format( "D MMM" ),
 			dayjs( data.labels[index] ).format( "h:mma" )
-		];
+		]; // index === 0 ? [] : 
 	}
 
 	const generateConfig = ( { xTitle, yTitle } ) => {
 		return {
 			responsive: true,
+			elements: {
+				line: {
+					tension: smooth
+				}
+			},
 			plugins: {
 				legend: false,
 				title: {
@@ -55,6 +64,8 @@ const LineChart = ( { data, heading, icon } ) => {
 									return dataset.data[i].y + "\u2103"; // Degrees C
 								case 'barometer':
 									return dataset.data[i].y + "hPa"; // \u3371
+								case 'tide':
+									return dataset.data[i].y + "m " + dayjs(  dataset.data[i].x ).format( "h:mma" );
 							}
 						}
 					}
@@ -72,6 +83,7 @@ const LineChart = ( { data, heading, icon } ) => {
 					},
 					ticks: {
 						maxTicksLimit: 7,
+						align: 'end',
 						autoSkip: true,
 						maxRotation: 0,
 						color: GRID_COLOUR,
@@ -125,7 +137,7 @@ const LineChart = ( { data, heading, icon } ) => {
 				data={ { 
 					...data, 
 					datasets: [
-						{ ...data.datasets[0], borderColor: "#00000080", ...point }
+						{ ...data.datasets[0], borderColor: "#00000080", ...point, tension: smooth }
 					]
 				} } 
 			/>

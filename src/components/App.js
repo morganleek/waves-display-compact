@@ -1,5 +1,7 @@
 import { useEffect, useState } from "@wordpress/element";
 import axios from '../lib/axios';
+// Date
+import * as dayjs from 'dayjs';
 // import classNames from 'classnames'
 // import { useForm } from "react-hook-form";
 import { ReactComponent as IconLoading } from '../images/fade-stagger-squares.svg';
@@ -120,12 +122,14 @@ function App(props) {
 					col: "WindSpeed (m/s)", 
 					key: "windSpeed", 
 					rotate: "WindDirec (deg)",
+					rotateColour: true
 				},
 				{ 
 					label: "Swell", 
 					col: "Hsig_swell (m)", 
 					key: "swellHeight",
-					rotate: "Dm (deg)"
+					rotate: "Dm (deg)",
+					rotateColour: false
 				},
 				{ 
 					label: "Seas", 
@@ -173,23 +177,30 @@ function App(props) {
 					setSeaState(0);
 				}
 
+				// Limit dataset based on limits
 				const buoyDataPointsClone = [ ...buoyDataPoints ];
-				buoyDataPointsClone.splice(0, maxItems ).forEach( ( buoy, index ) => {
-					// Skip nth items to ensure limits
-					// if( index % skipMod === 0 ) {
+				buoyDataPointsClone.splice(0, maxItems ).forEach( buoy => {
 					const rawData = JSON.parse(buoy.data_points);
 
 					// Process for each data type
 					dataTypes.forEach( type => {
 						const { col, key } = type;
 						const value = rawData[col];
-						if( value != "NaN" && parseInt(value) != -9999 ) {
+						if( value != "NaN" && parseInt(value) != -9999 && key != "tide" ) {
 							chartData[key].datasets[0].data.push( { x: parseInt( buoy.timestamp ) * 1000, y: parseFloat( rawData[col] ) } );
 							chartData[key].labels.push( parseInt( buoy.timestamp ) * 1000 );
 							if( type.rotate ) {
 								const bracket = Math.floor( parseInt( rawData[col] / 2 ) );
 								chartData[key].datasets[0].rotation.push( Math.floor( parseFloat( rawData[type.rotate] ) ) );
-								chartData[key].datasets[0].pointStyle.push( arrowImages[ bracket > 8 ? 8 : bracket ] );
+								// Colour arrows
+								if( type.rotateColour ) {
+									// Full colour
+									chartData[key].datasets[0].pointStyle.push( arrowImages[ bracket > 8 ? 8 : bracket ] );
+								}
+								else {
+									// No colour
+									chartData[key].datasets[0].pointStyle.push( arrowImages[ 0 ] );
+								}
 							}
 						}
 					} );
@@ -199,17 +210,23 @@ function App(props) {
 
 			// Tides
 			if( buoyTideData.length > 0 ) {
+				// const buoyTideDataClone = [ ...buoyTideData ];
+				// buoyTideDataClone.splice(0, maxItems ).forEach( buoy => {
+
+				// } );
 				// Table value
 				processedData.tide = parseFloat( buoyTideData[0]['height'] );
+				processedData.tideTime = dayjs( buoyTideData[0]['timestamp'] ).format( "h:mma" );
 
 				// Chart values
+				
 				buoyTideData.forEach( ( tide ) => {
 					chartData['tide'].datasets[0].data.push( { x: parseInt( tide.timestamp ) * 1000, y: parseFloat( tide.height ) } );
 					chartData['tide'].labels.push( parseInt( tide.timestamp ) * 1000 );
 				} );
 			}
 
-			console.log( chartData );
+			// console.log( chartData );
 			
 			setSelectedBuoy( {
 				buoyId,
@@ -378,7 +395,11 @@ function App(props) {
 									>
 										<h6><span className="icon"><IconTide /></span> Tide</h6>
 										{ selectedBuoy.processedData.tide 
-											? ( <p>{ parseFloat( selectedBuoy.processedData.tide ).toFixed(1) }<small>m</small></p> )
+											? ( <p>{ 
+												parseFloat( selectedBuoy.processedData.tide ) % 1 == 0 
+												? parseFloat( selectedBuoy.processedData.tide ).toFixed(0)  
+												: parseFloat( selectedBuoy.processedData.tide ).toFixed(2) 
+											}<small>m</small><br /><small>{ selectedBuoy.processedData.tideTime }</small></p> )
 											: ( <p>-</p> ) 
 										}
 									</div>
@@ -410,6 +431,7 @@ function App(props) {
 											data={ selectedBuoy.chartData.windSpeed }
 											heading={ "Wind Speed (m/s)" }
 											icon={ mapDetails.arrow_icon }
+											smooth={ 0 }
 										/>
 									</div>
 									<div className="chart-wrapper swell">
@@ -418,6 +440,7 @@ function App(props) {
 											data={ selectedBuoy.chartData.swellHeight }
 											heading="Swell (m)"
 											icon={ mapDetails.arrow_icon }
+											smooth={ 0 }
 										/>
 									</div>
 									<div className="chart-wrapper sea-state">
@@ -425,6 +448,7 @@ function App(props) {
 										<LineChart
 											data={ selectedBuoy.chartData.seasHeight }
 											heading="Seas (m)"
+											smooth={ 0 }
 										/>
 									</div>
 									<div className="chart-wrapper temperature">
@@ -432,6 +456,7 @@ function App(props) {
 										<LineChart
 											data={ selectedBuoy.chartData.surfaceTemperature }
 											heading={ "Temperature (\u2103)" }
+											smooth={ 0 }
 										/>
 									</div>
 									<div className="chart-wrapper tide">
@@ -439,6 +464,7 @@ function App(props) {
 										<LineChart
 											data={ selectedBuoy.chartData.tide }
 											heading={ "Tide Height (m)" }
+											smooth={ 0.7 }
 										/>
 									</div>
 									<div className="chart-wrapper barometer">
@@ -446,6 +472,7 @@ function App(props) {
 										<LineChart
 											data={ selectedBuoy.chartData.barometer }
 											heading={ "Barometer (hPa)" }
+											smooth={ 0 }
 										/>
 									</div>
 								</div>
