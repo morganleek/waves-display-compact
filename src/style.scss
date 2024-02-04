@@ -184,9 +184,13 @@
 					padding: 10px;
 					border-radius: var(--wp--wac--radius);
 					display: grid;
-					grid-template-rows: 1fr 2fr;
+					grid-template-rows: auto auto;
 					align-items: center;
-					gap: 10px;
+					gap: 5px;
+					@media (min-width: 768px) {
+						grid-template-rows: 1fr 2fr;
+						gap: 10px;
+					}
 					&.sea-barometer,
 					&.sea-tide {
 						.icon, svg {
