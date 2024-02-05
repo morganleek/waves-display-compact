@@ -11,6 +11,8 @@ import { ReactComponent as IconTide } from '../images/icon-tide-cropped.svg';
 import { ReactComponent as IconSeaState } from '../images/icon-sea-state-cropped.svg';
 import { ReactComponent as IconTemperature } from '../images/icon-temperature-cropped.svg';
 import { ReactComponent as IconBarometer } from '../images/icon-barometer-cropped.svg';
+import { ReactComponent as IconArrowUp } from '../images/icon-arrow-up-14.svg';
+import { ReactComponent as IconArrowDown } from '../images/icon-arrow-down-14.svg';
 
 // Map
 import { Wrapper, Status } from "@googlemaps/react-wrapper";
@@ -48,6 +50,7 @@ function App(props) {
 	const [maxItems, setMaxItems] = useState( window.innerWidth < 450 ? 50 : 150 );
 	const [buoyDataPoints, setBuoyDataPoints] = useState(null);
 	const [buoyTideData, setBuoyTideData] = useState(null);
+	const [buoyNextTide, setBuoyNextTide] = useState(null);
 
 	const arrowColours = [
 		"#eff8fd", "#ccf0fe", "#9cdbfc", 
@@ -275,6 +278,20 @@ function App(props) {
 			.then(response => {
 				if (response.status == 200) {
 					setBuoyTideData(response.data.data);
+
+					// Reverse data - oldest to newest
+					let tideData = [...response.data.data].reverse();
+					// Loop through until greater than now
+					for(let i = 0; i < tideData.length; i++ ) {
+						if( parseInt( tideData[i].timestamp ) > mapDetails.now ) {
+							setBuoyNextTide( {
+								timeStamp: parseInt( tideData[i].timestamp ),
+								height: tideData[i].height,
+								isFalling: i > 0 ? tideData[i] < tideData[i - 1] : true // Can't know for sure if it's the first
+							} );
+							break;
+						}
+					}
 				}
 			})
 			.catch((e) => { console.debug(e); });
@@ -394,13 +411,16 @@ function App(props) {
 										onClick={ () => { document.querySelector('.chart-wrapper.tide')?.scrollIntoView( { behavior: 'smooth' } ) } }
 									>
 										<h6><span className="icon"><IconTide /></span> Tide</h6>
-										{ selectedBuoy.processedData.tide 
+										{ buoyNextTide
 											? ( <p>{ 
-												parseFloat( selectedBuoy.processedData.tide ) % 1 == 0 
-												? parseFloat( selectedBuoy.processedData.tide ).toFixed(0)  
-												: parseFloat( selectedBuoy.processedData.tide ).toFixed(2) 
-											}<small>m</small><br /><small>{ selectedBuoy.processedData.tideTime }</small></p> )
-											: ( <p>-</p> ) 
+													parseFloat( buoyNextTide.height ) % 1 == 0 
+													? parseFloat( buoyNextTide.height ).toFixed(0)  
+													: parseFloat( buoyNextTide.height ).toFixed(2) 
+												}<small>m</small><br />
+												<small>{ dayjs( buoyNextTide.timeStamp * 1000 ).format( "h:mma Z" ) }</small><br />
+												<small className="tide-direction">{ buoyNextTide.isFalling ? ( <>Falling <IconArrowDown /></> ) : ( <>Rising <IconArrowUp /></> ) }</small>
+											</p> )
+											: ( <p>-</p> )
 										}
 									</div>
 									<div 

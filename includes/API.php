@@ -3,7 +3,19 @@
 	add_action( 'rest_api_init', function () {
 		register_rest_route( 'wac/v1', '/map', array(
 			'methods' => 'GET',
-			'callback' => function() { return get_option('wac_options'); },
+			'callback' => function() { 
+				$now = current_time('U'); // With local timezone
+				$now_format = current_time('Y-m-d H:i:s');
+				$options = get_option('wac_options');
+				return array_merge( 
+					array( 
+						'now' => $now, 
+						'now_format' => $now_format,
+						'time_zone' => wp_timezone()
+					), 
+					$options 
+				); 
+			},
 		) );
 	} );
 
