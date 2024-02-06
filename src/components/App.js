@@ -457,7 +457,10 @@ function App(props) {
 								<h4>Historical Observations</h4>
 								<div className="historic-observations">
 									<div className="chart-wrapper wind">
-										<h5><span className="icon"><IconWind /></span> Wind</h5>
+										<div className="chart-header">
+											<h5><span className="icon"><IconWind /></span> Wind</h5>
+											<a className="back-to-top" onClick={ () => { document.querySelector( ".latest-observations" )?.scrollIntoView( { behavior: 'smooth' } ) } }>Back to top</a>
+										</div>
 										<LineChart
 											data={ selectedBuoy.chartData.windSpeed }
 											heading={ "Wind Speed (m/s)" }
@@ -466,7 +469,10 @@ function App(props) {
 										/>
 									</div>
 									<div className="chart-wrapper swell">
-										<h5><span className="icon"><IconSwell /></span> Swell</h5>
+										<div className="chart-header">
+											<h5><span className="icon"><IconSwell /></span> Swell</h5>
+											<a className="back-to-top" onClick={ () => { document.querySelector( ".latest-observations" )?.scrollIntoView( { behavior: 'smooth' } ) } }>Back to top</a>
+										</div>
 										<LineChart
 											data={ selectedBuoy.chartData.swellHeight }
 											heading="Swell (m)"
@@ -475,7 +481,10 @@ function App(props) {
 										/>
 									</div>
 									<div className="chart-wrapper sea-state">
-										<h5><span className="icon"><IconSeaState /></span> Seas</h5>
+										<div className="chart-header">
+											<h5><span className="icon"><IconSeaState /></span> Seas</h5>
+											<a className="back-to-top" onClick={ () => { document.querySelector( ".latest-observations" )?.scrollIntoView( { behavior: 'smooth' } ) } }>Back to top</a>
+										</div>
 										<LineChart
 											data={ selectedBuoy.chartData.seasHeight }
 											heading="Seas (m)"
@@ -483,7 +492,10 @@ function App(props) {
 										/>
 									</div>
 									<div className="chart-wrapper temperature">
-										<h5><span className="icon"><IconTemperature /></span> Surface Temperature</h5>
+										<div className="chart-header">
+											<h5><span className="icon"><IconTemperature /></span> Surface Temperature</h5>
+											<a className="back-to-top" onClick={ () => { document.querySelector( ".latest-observations" )?.scrollIntoView( { behavior: 'smooth' } ) } }>Back to top</a>
+										</div>
 										<LineChart
 											data={ selectedBuoy.chartData.surfaceTemperature }
 											heading={ "Temperature (\u2103)" }
@@ -491,7 +503,10 @@ function App(props) {
 										/>
 									</div>
 									<div className="chart-wrapper tide">
-										<h5><span className="icon"><IconTide /></span> Tide</h5>
+										<div className="chart-header">
+											<h5><span className="icon"><IconTide /></span> Tide</h5>
+											<a className="back-to-top" onClick={ () => { document.querySelector( ".latest-observations" )?.scrollIntoView( { behavior: 'smooth' } ) } }>Back to top</a>
+										</div>
 										<LineChart
 											data={ selectedBuoy.chartData.tide }
 											heading={ "Tide Height (m)" }
@@ -499,7 +514,10 @@ function App(props) {
 										/>
 									</div>
 									<div className="chart-wrapper barometer">
-										<h5><span className="icon"><IconBarometer /></span> Barometer</h5>
+										<div className="chart-header">
+											<h5><span className="icon"><IconBarometer /></span> Barometer</h5>
+											<a className="back-to-top" onClick={ () => { document.querySelector( ".latest-observations" )?.scrollIntoView( { behavior: 'smooth' } ) } }>Back to top</a>
+										</div>
 										<LineChart
 											data={ selectedBuoy.chartData.barometer }
 											heading={ "Barometer (hPa)" }
