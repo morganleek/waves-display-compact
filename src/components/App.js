@@ -179,6 +179,17 @@ function App(props) {
 					// Work out sea state
 					setSeaState(0);
 				}
+				if( buoyDataPoints[2]?.data_points && processedData.barometer ) {
+					const unprocessedData = JSON.parse(buoyDataPoints[2]?.data_points);
+					if( unprocessedData['Pressure (hPa)'] != "-9999.00" ) {
+						const barometerPrevious = parseFloat( processedData.barometer );
+						processedData.barometerChange = processedData.barometer < barometerPrevious 
+							? -1 
+							: processedData.barometer > barometerPrevious 
+								? 1 
+								: -1; // 0
+					}
+				}
 
 				// Limit dataset based on limits
 				const buoyDataPointsClone = [ ...buoyDataPoints ];
@@ -429,7 +440,7 @@ function App(props) {
 									>
 										<h6><span className="icon"><IconBarometer /></span> Barometer</h6>
 										{ selectedBuoy.processedData.barometer 
-											? ( <p>{ parseInt( selectedBuoy.processedData.barometer ) }<small>hPa</small></p> )
+											? ( <p className="tide-direction">{ parseInt( selectedBuoy.processedData.barometer ) }<small>hPa</small> <small>{ selectedBuoy.processedData?.barometerChange ? ( <IconArrowDown /> ) : ( <IconArrowUp /> ) }</small></p> )
 											: ( <p>-</p> )
 										}
 									</div>

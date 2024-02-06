@@ -214,6 +214,18 @@
 							width: 20px;
 							height: 20px;
 						}
+						.tide-direction {
+							display: flex;
+							align-items: center;
+							justify-content: center;
+							gap: 5px;
+							text-transform: uppercase;
+							padding-top: 8px;
+							svg {
+								width: 14px;
+								height: 14px;
+							}
+						}
 					}
 					&.sea-barometer {
 						h5, h6 {
@@ -229,18 +241,6 @@
 					&.sea-tide {
 						h5, h6 {
 							gap: 5px;
-						}
-						.tide-direction {
-							display: flex;
-							align-items: center;
-							justify-content: center;
-							gap: 5px;
-							text-transform: uppercase;
-							padding-top: 8px;
-							svg {
-								width: 14px;
-								height: 14px;
-							}
 						}
 					}
 					&.sea-temperature {
