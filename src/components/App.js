@@ -2,7 +2,7 @@ import { useEffect, useState } from "@wordpress/element";
 import axios from '../lib/axios';
 // Date
 import * as dayjs from 'dayjs';
-// import classNames from 'classnames'
+import classNames from 'classnames'
 // import { useForm } from "react-hook-form";
 import { ReactComponent as IconLoading } from '../images/fade-stagger-squares.svg';
 import { ReactComponent as IconWind } from '../images/icon-wind-cropped.svg';
@@ -40,6 +40,13 @@ const degreesToDirection = degrees => {
 	return directions[section];
 }
 
+const ScaleButtons = ( { zoom, setZoom } ) => (
+	<div className="scaleButtons">
+		<button className={ classNames( { 'disabled': zoom >= 5 } ) } onClick={ () => { if( zoom < 5 ) { setZoom( zoom + 1 ) } } }>-</button>
+		<button className={ classNames( { 'disabled': zoom <= 1 } ) } onClick={ () => { if( zoom > 1 ) { setZoom( zoom - 1 ) } } }>+</button>
+	</div>
+);
+
 function App(props) {
 	const [buoys, setBuoys] = useState([]);
 	const [buoyId, setBuoyId] = useState(null);
@@ -51,16 +58,20 @@ function App(props) {
 	const [buoyDataPoints, setBuoyDataPoints] = useState(null);
 	const [buoyTideData, setBuoyTideData] = useState(null);
 	const [buoyNextTide, setBuoyNextTide] = useState(null);
+	const [zoom, setZoom] = useState(3); // 1 - 5
 
 	const arrowColours = [
-		"#eff8fd", "#ccf0fe", "#9cdbfc", 
-		"#acffa7", "#7ede78", "#e6e675", 
-		"#ff7d4b", "#e5270c", "#990000"
+		"#ccf0fe", "#9cdbfc", "#acffa7", "#7ede78", "#e6e675", 
+		"#ff7d4b", "#e5270c", "#990000", "#000000"
 	];
 	const seaStates = [
-		{ label: 'Low', colour: "#43997c" },
-		{ label: 'Moderate', colour: "#ffc100"},
-		{ label: 'Extreme', colour: '#dc3545' }
+		{ label: 'Calm', colour: "#43997c" },
+		{ label: 'Slight', colour: "#acffa7" },
+		{ label: 'Moderate', colour: "#e6e675"},
+		{ label: 'Extreme', colour: '#ff7d4b' },
+		{ label: 'Rough', colour: '#e5270c' },
+		{ label: 'Very Rough', colour: '#990000' },
+		{ label: 'Extreme', colour: '#000000' },
 	];
 	const arrowImages = [];
 
@@ -125,14 +136,18 @@ function App(props) {
 					col: "WindSpeed (m/s)", 
 					key: "windSpeed", 
 					rotate: "WindDirec (deg)",
-					rotateColour: true
+					rotateColour: true,
+					rotateColourMin: 0,
+					rotateColourMax: 25
 				},
 				{ 
 					label: "Swell", 
 					col: "Hsig_swell (m)", 
 					key: "swellHeight",
 					rotate: "Dm (deg)",
-					rotateColour: false
+					rotateColour: true,
+					rotateColourMin: 0, 
+					rotateColourMax: 6
 				},
 				{ 
 					label: "Seas", 
@@ -193,7 +208,7 @@ function App(props) {
 
 				// Limit dataset based on limits
 				const buoyDataPointsClone = [ ...buoyDataPoints ];
-				buoyDataPointsClone.splice(0, maxItems ).forEach( buoy => {
+				buoyDataPointsClone.splice(0, Math.ceil( ( zoom / 5 ) * maxItems ) ).forEach( buoy => {
 					const rawData = JSON.parse(buoy.data_points);
 
 					// Process for each data type
@@ -204,10 +219,22 @@ function App(props) {
 							chartData[key].datasets[0].data.push( { x: parseInt( buoy.timestamp ) * 1000, y: parseFloat( rawData[col] ) } );
 							chartData[key].labels.push( parseInt( buoy.timestamp ) * 1000 );
 							if( type.rotate ) {
-								const bracket = Math.floor( parseInt( rawData[col] / 2 ) );
 								chartData[key].datasets[0].rotation.push( Math.floor( parseFloat( rawData[type.rotate] ) ) );
 								// Colour arrows
-								if( type.rotateColour ) {
+								if( type.rotateColour && Number.isInteger( type.rotateColourMin ) && Number.isInteger( type.rotateColourMax ) ) {
+									let bracket = 0;
+									if( parseInt( rawData[col] ) > type.rotateColourMax ) {
+										bracket = 8;
+									}
+									else if( parseInt( rawData[col] ) < type.rotateColourMin ) {
+										bracket = 0;
+									}
+									else {
+										bracket = Math.round( ( parseInt( rawData[col] ) - type.rotateColourMin ) / ( type.rotateColourMax - type.rotateColourMin ) * 8 );
+									}
+									// console.log( parseInt( value ), type.rotateColourMin, type.rotateColourMax, bracket );
+
+									// bracket = Math.floor( parseInt( rawData[col] / 2 ) );
 									// Full colour
 									chartData[key].datasets[0].pointStyle.push( arrowImages[ bracket > 8 ? 8 : bracket ] );
 								}
@@ -250,7 +277,7 @@ function App(props) {
 			// Setup buoys
 			// setSelectedBuoy( { ...response.data, processedData, chartData } );
 		}
-	}, [buoyDataPoints, maxItems]);
+	}, [buoyDataPoints, maxItems, zoom]);
 
 	// Change max items if screen width changes
 	let resizeTimeoutId;
@@ -458,8 +485,9 @@ function App(props) {
 								<div className="historic-observations">
 									<div className="chart-wrapper wind">
 										<div className="chart-header">
-											<h5><span className="icon"><IconWind /></span> Wind</h5>
 											<a className="back-to-top" onClick={ () => { document.querySelector( ".latest-observations" )?.scrollIntoView( { behavior: 'smooth' } ) } }>Back to top</a>
+											<h5><span className="icon"><IconWind /></span> Wind</h5>
+											<ScaleButtons zoom={ zoom } setZoom={ setZoom } />
 										</div>
 										<LineChart
 											data={ selectedBuoy.chartData.windSpeed }
@@ -470,8 +498,9 @@ function App(props) {
 									</div>
 									<div className="chart-wrapper swell">
 										<div className="chart-header">
-											<h5><span className="icon"><IconSwell /></span> Swell</h5>
 											<a className="back-to-top" onClick={ () => { document.querySelector( ".latest-observations" )?.scrollIntoView( { behavior: 'smooth' } ) } }>Back to top</a>
+											<h5><span className="icon"><IconSwell /></span> Swell</h5>
+											<ScaleButtons zoom={ zoom } setZoom={ setZoom } />
 										</div>
 										<LineChart
 											data={ selectedBuoy.chartData.swellHeight }
@@ -482,8 +511,9 @@ function App(props) {
 									</div>
 									<div className="chart-wrapper sea-state">
 										<div className="chart-header">
-											<h5><span className="icon"><IconSeaState /></span> Seas</h5>
 											<a className="back-to-top" onClick={ () => { document.querySelector( ".latest-observations" )?.scrollIntoView( { behavior: 'smooth' } ) } }>Back to top</a>
+											<h5><span className="icon"><IconSeaState /></span> Seas</h5>
+											<ScaleButtons zoom={ zoom } setZoom={ setZoom } />
 										</div>
 										<LineChart
 											data={ selectedBuoy.chartData.seasHeight }
@@ -493,8 +523,9 @@ function App(props) {
 									</div>
 									<div className="chart-wrapper temperature">
 										<div className="chart-header">
-											<h5><span className="icon"><IconTemperature /></span> Surface Temperature</h5>
 											<a className="back-to-top" onClick={ () => { document.querySelector( ".latest-observations" )?.scrollIntoView( { behavior: 'smooth' } ) } }>Back to top</a>
+											<h5><span className="icon"><IconTemperature /></span> Surface Temperature</h5>
+											<ScaleButtons zoom={ zoom } setZoom={ setZoom } />
 										</div>
 										<LineChart
 											data={ selectedBuoy.chartData.surfaceTemperature }
@@ -504,8 +535,9 @@ function App(props) {
 									</div>
 									<div className="chart-wrapper tide">
 										<div className="chart-header">
-											<h5><span className="icon"><IconTide /></span> Tide</h5>
 											<a className="back-to-top" onClick={ () => { document.querySelector( ".latest-observations" )?.scrollIntoView( { behavior: 'smooth' } ) } }>Back to top</a>
+											<h5><span className="icon"><IconTide /></span> Tide</h5>
+											<ScaleButtons zoom={ zoom } setZoom={ setZoom } />
 										</div>
 										<LineChart
 											data={ selectedBuoy.chartData.tide }
@@ -515,8 +547,9 @@ function App(props) {
 									</div>
 									<div className="chart-wrapper barometer">
 										<div className="chart-header">
-											<h5><span className="icon"><IconBarometer /></span> Barometer</h5>
 											<a className="back-to-top" onClick={ () => { document.querySelector( ".latest-observations" )?.scrollIntoView( { behavior: 'smooth' } ) } }>Back to top</a>
+											<h5><span className="icon"><IconBarometer /></span> Barometer</h5>
+											<ScaleButtons zoom={ zoom } setZoom={ setZoom } />
 										</div>
 										<LineChart
 											data={ selectedBuoy.chartData.barometer }

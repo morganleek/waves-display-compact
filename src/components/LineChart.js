@@ -15,9 +15,26 @@ ChartJS.register(
   Tooltip
 );
 
-
 const GRID_COLOUR = "#FFFFFF";
 const GRID_COLOUR_HALF = "#FFFFFF80";
+
+const swellLabels = [
+	{ lessThan: 0.5,  label: 'Calm',       colour: 'Light Green' },
+	{ lessThan: 1.25, label: 'Slight',     colour: 'Green' },
+	{ lessThan: 2.5,  label: 'Moderate',   colour: 'Orange' },
+	{ lessThan: 4,    label: 'Rough',      colour: 'Red' },
+	{ lessThan: 6,    label: 'Very Rough', colour: 'Red' },
+	{ lessThan: 100,  label: 'Extreme',    colour: 'Black '}
+];
+
+const swellRating = ( score ) => {
+	const newLabel = swellLabels.filter( swellLabel => swellLabel.lessThan >= parseFloat( score ) );
+	
+	if( newLabel.length > 0 ) {
+		return '(' + newLabel[0].label + ')';
+	}
+	return '(Calm)';
+}
 
 const LineChart = ( { data, heading, icon, smooth } ) => {
 	const start = Math.min( ...data.labels );
@@ -53,11 +70,12 @@ const LineChart = ( { data, heading, icon, smooth } ) => {
 						title: ( { label } ) => {
 							return dayjs( label ).format( "D MMM h:mma" );
 						},
-						label: ( { dataset, datasetIndex: i } ) => {
+						label: ( { dataset, dataIndex: i } ) => {
 							switch( dataset.key ) {
 								case 'windSpeed':
 									return dataset.data[i].y + "m/s (" + dataset.rotation[i] + "\u00B0)";
 								case 'swellHeight':
+									return dataset.data[i].y + "m " + swellRating( dataset.data[i].y );
 								case 'seasHeight':
 									return dataset.data[i].y + "m";
 								case 'surfaceTemperature':

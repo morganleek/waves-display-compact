@@ -325,19 +325,23 @@
 					margin-top: 0;
 				}
 			}
+			canvas {
+				background: url(./images/logo-watermark.png) 50% 8%/242px auto no-repeat;
+				background-blend-mode: multiply;
+			}
 			.chart-header {
 				display: flex;
 				gap: 7px;
 				justify-content: space-between;
 				align-items: center;
-				@media (min-width: 600px) {
-					&::before {
-						content: '';
-						width: 95px;
-						height: 2px;
-						display: block;
-					}
-				}
+				// @media (min-width: 600px) {
+				// 	&::before {
+				// 		content: '';
+				// 		width: 95px;
+				// 		height: 2px;
+				// 		display: block;
+				// 	}
+				// }
 				.back-to-top {
 					font-family: var(--wp--preset--font-family--rubik);
 					font-size: var(--wp--custom--typography--font-size--heading-6);
@@ -348,16 +352,34 @@
 					gap: 6px;
 					align-items: center;
 					cursor: pointer;
-					&::after {
+					&::before {
 						content: "";
 						width: 8px;
 						height: 8px;
 						border-top: 1px solid #fff;
-						border-right: 1px solid #fff;
+						border-left: 1px solid #fff;
 						transform: translate(0, 30%) rotate(-45deg);
 					}
 					&:hover {
 						text-decoration: none;
+					}
+				}
+				.scaleButtons {
+					display: flex;
+					gap: 8px;
+					button {
+						border: 1px solid #fff;
+						background: transparent;
+						color: #fff;
+						border-radius: 3px;
+						aspect-ratio: 1;
+						padding: 0;
+						width: 24px;
+						font-weight: 700;
+						transition: all 0.2s;
+						&.disabled {
+							opacity: 0.5;
+						}
 					}
 				}
 			}
