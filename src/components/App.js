@@ -13,6 +13,7 @@ import { ReactComponent as IconTemperature } from '../images/icon-temperature-cr
 import { ReactComponent as IconBarometer } from '../images/icon-barometer-cropped.svg';
 import { ReactComponent as IconArrowUp } from '../images/icon-arrow-up-14.svg';
 import { ReactComponent as IconArrowDown } from '../images/icon-arrow-down-14.svg';
+import { swellRating, swellClass } from '../lib/swell';
 
 // Map
 import { Wrapper, Status } from "@googlemaps/react-wrapper";
@@ -42,9 +43,17 @@ const degreesToDirection = degrees => {
 
 const ScaleButtons = ( { zoom, setZoom } ) => (
 	<div className="scaleButtons">
-		<button className={ classNames( { 'disabled': zoom >= 5 } ) } onClick={ () => { if( zoom < 5 ) { setZoom( zoom + 1 ) } } }>-</button>
-		<button className={ classNames( { 'disabled': zoom <= 1 } ) } onClick={ () => { if( zoom > 1 ) { setZoom( zoom - 1 ) } } }>+</button>
+		{ zoom > 0 && ( 
+			<>
+				<button className={ classNames( { 'disabled': zoom >= 5 } ) } onClick={ () => { if( zoom < 5 ) { setZoom( zoom + 1 ) } } }>-</button>
+				<button className={ classNames( { 'disabled': zoom <= 1 } ) } onClick={ () => { if( zoom > 1 ) { setZoom( zoom - 1 ) } } }>+</button>
+			</>
+		) }
 	</div>
+);
+
+const BackToTop = () => (
+	<a className="back-to-top" onClick={ () => { document.querySelector( ".latest-observations" )?.scrollIntoView( { behavior: 'smooth' } ) } }></a>
 );
 
 function App(props) {
@@ -64,15 +73,15 @@ function App(props) {
 		"#ccf0fe", "#9cdbfc", "#acffa7", "#7ede78", "#e6e675", 
 		"#ff7d4b", "#e5270c", "#990000", "#000000"
 	];
-	const seaStates = [
-		{ label: 'Calm', colour: "#43997c" },
-		{ label: 'Slight', colour: "#acffa7" },
-		{ label: 'Moderate', colour: "#e6e675"},
-		{ label: 'Extreme', colour: '#ff7d4b' },
-		{ label: 'Rough', colour: '#e5270c' },
-		{ label: 'Very Rough', colour: '#990000' },
-		{ label: 'Extreme', colour: '#000000' },
-	];
+	// const seaStates = [
+	// 	{ label: 'Calm', colour: "#43997c" },
+	// 	{ label: 'Slight', colour: "#acffa7" },
+	// 	{ label: 'Moderate', colour: "#e6e675"},
+	// 	{ label: 'Extreme', colour: '#ff7d4b' },
+	// 	{ label: 'Rough', colour: '#e5270c' },
+	// 	{ label: 'Very Rough', colour: '#990000' },
+	// 	{ label: 'Extreme', colour: '#000000' },
+	// ];
 	const arrowImages = [];
 
 	arrowColours.forEach( colour => {
@@ -149,6 +158,11 @@ function App(props) {
 					rotateColourMin: 0, 
 					rotateColourMax: 6
 				},
+				{
+					label: "Period", // Mean
+					col: "Tm (s)", 
+					key: "period"
+				},
 				{ 
 					label: "Seas", 
 					col: "Hsig_sea (m)", 
@@ -182,6 +196,7 @@ function App(props) {
 			if( buoyDataPoints.length > 0 ) {
 				if( buoyDataPoints[0]?.data_points ) {
 					const unprocessedData = JSON.parse(buoyDataPoints[0]?.data_points);
+					// console.log( unprocessedData );
 					processedData.timeStampUTC = unprocessedData['Timestamp (UTC)'];
 					processedData.surfaceTemperature = unprocessedData['SST (degC)'] != "-9999.0" ? parseFloat( unprocessedData['SST (degC)'] ) : null;
 					processedData.swellHeight = unprocessedData['Hsig_swell (m)'] != "-9999.00" ? parseFloat( unprocessedData['Hsig_swell (m)'] ) : null;
@@ -192,7 +207,7 @@ function App(props) {
 					processedData.barometer = unprocessedData['Pressure (hPa)'] != "-9999.00" ? parseFloat( unprocessedData['Pressure (hPa)'] ) : null;
 					
 					// Work out sea state
-					setSeaState(0);
+					setSeaState( processedData.swellHeight );
 				}
 				if( buoyDataPoints[2]?.data_points && processedData.barometer ) {
 					const unprocessedData = JSON.parse(buoyDataPoints[2]?.data_points);
@@ -290,6 +305,7 @@ function App(props) {
 	} );
 
 	const updateBuoy = (newBuoyId) => {
+		console.log( 'updateBuoy: ', newBuoyId );
 		// Set ID except when reselecting the default 
 		if (newBuoyId > 0) {
 			// Fetch buoy values
@@ -334,6 +350,10 @@ function App(props) {
 			})
 			.catch((e) => { console.debug(e); });
 		}
+		// else {
+		// 	// Back to map
+		// 	setBuoyId( null );
+		// }
 	};
 
 	return (
@@ -430,7 +450,7 @@ function App(props) {
 									>
 										<h6><span className="icon"><IconSeaState /></span> Sea State</h6>
 										{ seaState != null
-											? ( <p className={ "level-" + seaState }>{ seaStates[seaState].label }</p> )
+											? ( <p className={ "level-" + swellClass( seaState ) }>{ swellRating( seaState ) }</p> )
 											: ( <p>-</p> )
 										}
 									</div>
@@ -485,7 +505,7 @@ function App(props) {
 								<div className="historic-observations">
 									<div className="chart-wrapper wind">
 										<div className="chart-header">
-											<a className="back-to-top" onClick={ () => { document.querySelector( ".latest-observations" )?.scrollIntoView( { behavior: 'smooth' } ) } }>Back to top</a>
+											<BackToTop />
 											<h5><span className="icon"><IconWind /></span> Wind</h5>
 											<ScaleButtons zoom={ zoom } setZoom={ setZoom } />
 										</div>
@@ -496,9 +516,25 @@ function App(props) {
 											smooth={ 0 }
 										/>
 									</div>
+									{/* <div className="chart-wrapper swell">
+										<div className="chart-header">
+											<BackToTop />
+											<h5><span className="icon"><IconSwell /></span> Swell</h5>
+											<ScaleButtons zoom={ zoom } setZoom={ setZoom } />
+										</div>
+										<LineChart
+											data={ [
+												selectedBuoy.chartData.swellHeight,
+												selectedBuoy.chartData.period
+											] }
+											heading="Swell (m)"
+											icon={ mapDetails.arrow_icon }
+											smooth={ 0 }
+										/>
+									</div> */}
 									<div className="chart-wrapper swell">
 										<div className="chart-header">
-											<a className="back-to-top" onClick={ () => { document.querySelector( ".latest-observations" )?.scrollIntoView( { behavior: 'smooth' } ) } }>Back to top</a>
+											<BackToTop />
 											<h5><span className="icon"><IconSwell /></span> Swell</h5>
 											<ScaleButtons zoom={ zoom } setZoom={ setZoom } />
 										</div>
@@ -509,9 +545,22 @@ function App(props) {
 											smooth={ 0 }
 										/>
 									</div>
+									<div className="chart-wrapper swell">
+										<div className="chart-header">
+											<BackToTop />
+											<h5><span className="icon"><IconSwell /></span> Period</h5>
+											<ScaleButtons zoom={ zoom } setZoom={ setZoom } />
+										</div>
+										<LineChart
+											data={ selectedBuoy.chartData.period }
+											heading="Period (s)"
+											icon={ mapDetails.arrow_icon }
+											smooth={ 0 }
+										/>
+									</div>
 									<div className="chart-wrapper sea-state">
 										<div className="chart-header">
-											<a className="back-to-top" onClick={ () => { document.querySelector( ".latest-observations" )?.scrollIntoView( { behavior: 'smooth' } ) } }>Back to top</a>
+											<BackToTop />
 											<h5><span className="icon"><IconSeaState /></span> Seas</h5>
 											<ScaleButtons zoom={ zoom } setZoom={ setZoom } />
 										</div>
@@ -523,7 +572,7 @@ function App(props) {
 									</div>
 									<div className="chart-wrapper temperature">
 										<div className="chart-header">
-											<a className="back-to-top" onClick={ () => { document.querySelector( ".latest-observations" )?.scrollIntoView( { behavior: 'smooth' } ) } }>Back to top</a>
+											<BackToTop />
 											<h5><span className="icon"><IconTemperature /></span> Surface Temperature</h5>
 											<ScaleButtons zoom={ zoom } setZoom={ setZoom } />
 										</div>
@@ -535,9 +584,9 @@ function App(props) {
 									</div>
 									<div className="chart-wrapper tide">
 										<div className="chart-header">
-											<a className="back-to-top" onClick={ () => { document.querySelector( ".latest-observations" )?.scrollIntoView( { behavior: 'smooth' } ) } }>Back to top</a>
+											<BackToTop />
 											<h5><span className="icon"><IconTide /></span> Tide</h5>
-											<ScaleButtons zoom={ zoom } setZoom={ setZoom } />
+											<ScaleButtons zoom={ -1 } setZoom={ null } />
 										</div>
 										<LineChart
 											data={ selectedBuoy.chartData.tide }
@@ -547,7 +596,7 @@ function App(props) {
 									</div>
 									<div className="chart-wrapper barometer">
 										<div className="chart-header">
-											<a className="back-to-top" onClick={ () => { document.querySelector( ".latest-observations" )?.scrollIntoView( { behavior: 'smooth' } ) } }>Back to top</a>
+											<BackToTop />
 											<h5><span className="icon"><IconBarometer /></span> Barometer</h5>
 											<ScaleButtons zoom={ zoom } setZoom={ setZoom } />
 										</div>

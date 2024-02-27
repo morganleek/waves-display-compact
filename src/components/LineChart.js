@@ -3,6 +3,7 @@
 // Charts
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip } from 'chart.js';
 import { Line } from 'react-chartjs-2';
+import { swellRating } from '../lib/swell';
 // Date
 import * as dayjs from 'dayjs'
 
@@ -18,27 +19,20 @@ ChartJS.register(
 const GRID_COLOUR = "#FFFFFF";
 const GRID_COLOUR_HALF = "#FFFFFF80";
 
-const swellLabels = [
-	{ lessThan: 0.5,  label: 'Calm',       colour: 'Light Green' },
-	{ lessThan: 1.25, label: 'Slight',     colour: 'Green' },
-	{ lessThan: 2.5,  label: 'Moderate',   colour: 'Orange' },
-	{ lessThan: 4,    label: 'Rough',      colour: 'Red' },
-	{ lessThan: 6,    label: 'Very Rough', colour: 'Red' },
-	{ lessThan: 100,  label: 'Extreme',    colour: 'Black '}
-];
-
-const swellRating = ( score ) => {
-	const newLabel = swellLabels.filter( swellLabel => swellLabel.lessThan >= parseFloat( score ) );
+// const swellRating = ( score ) => {
+// 	const newLabel = swellLabels.filter( swellLabel => swellLabel.lessThan >= parseFloat( score ) );
 	
-	if( newLabel.length > 0 ) {
-		return '(' + newLabel[0].label + ')';
-	}
-	return '(Calm)';
-}
+// 	if( newLabel.length > 0 ) {
+// 		return '(' + newLabel[0].label + ')';
+// 	}
+// 	return '(Calm)';
+// }
 
 const LineChart = ( { data, heading, icon, smooth } ) => {
-	const start = Math.min( ...data.labels );
-	const end = Math.max( ...data.labels ); // ).format( "D MMM YYYY" );
+	const labels = Array.isArray( data ) ? data[0].labels : data.labels; 
+
+	const start = Math.min( ...labels );
+	const end = Math.max( ...labels );
 	
 	// Convert timestamp to formated date
 	const xAxisCallback = ( tickValue, index, ticks ) => {
@@ -47,8 +41,8 @@ const LineChart = ( { data, heading, icon, smooth } ) => {
 		// 	return "";
 		// }
 		return [
-			dayjs( data.labels[index] ).format( "D MMM" ),
-			dayjs( data.labels[index] ).format( "h:mma" )
+			dayjs( labels[index] ).format( "D MMM" ),
+			dayjs( labels[index] ).format( "h:mma" )
 		]; // index === 0 ? [] : 
 	}
 
@@ -67,7 +61,8 @@ const LineChart = ( { data, heading, icon, smooth } ) => {
 				},
 				tooltip: {
 					callbacks: {
-						title: ( { label } ) => {
+						title: ( props ) => {
+							const label = parseInt( props[0].label );
 							return dayjs( label ).format( "D MMM h:mma" );
 						},
 						label: ( { dataset, dataIndex: i } ) => {
@@ -75,7 +70,7 @@ const LineChart = ( { data, heading, icon, smooth } ) => {
 								case 'windSpeed':
 									return dataset.data[i].y + "m/s (" + dataset.rotation[i] + "\u00B0)";
 								case 'swellHeight':
-									return dataset.data[i].y + "m " + swellRating( dataset.data[i].y );
+									return dataset.data[i].y + "m (" + swellRating( dataset.data[i].y ) + ")";
 								case 'seasHeight':
 									return dataset.data[i].y + "m";
 								case 'surfaceTemperature':
@@ -84,6 +79,8 @@ const LineChart = ( { data, heading, icon, smooth } ) => {
 									return dataset.data[i].y + "hPa"; // \u3371
 								case 'tide':
 									return dataset.data[i].y + "m " + dayjs(  dataset.data[i].x ).format( "h:mma" );
+								case 'period':
+									return dataset.data[i].y + "s"; // \u3371
 							}
 						}
 					}
@@ -136,13 +133,39 @@ const LineChart = ( { data, heading, icon, smooth } ) => {
 
 	// Arrow icons
 	let point = {};
-	if( data.datasets[0].rotation && icon ) {
-		let arrow = new Image( 16, 16 );
-		arrow.src = icon;
-		point = { radius: 10 }; // pointStyle: arrow, 
+	if( Array.isArray( data ) ) {
+		if( data[0].datasets[0].rotation && icon ) {
+			let arrow = new Image( 16, 16 );
+			arrow.src = icon;
+			point = { radius: 10 }; // pointStyle: arrow, 
+		}
+		else {
+			point = { pointStyle: 'circle' };
+		}
 	}
 	else {
-		point = { pointStyle: 'circle' };
+		if( data.datasets[0].rotation && icon ) {
+			let arrow = new Image( 16, 16 );
+			arrow.src = icon;
+			point = { radius: 10 }; // pointStyle: arrow, 
+		}
+		else {
+			point = { pointStyle: 'circle' };
+		}
+	}
+
+	// Check if data is array
+	let datasets = [];
+	if( Array.isArray( data ) ) {
+		datasets = [
+			{ ...data[0].datasets[0], borderColor: "#00000080", ...point, tension: smooth },
+			{ ...data[1].datasets[0], borderColor: "#00000080", ...point, tension: smooth }
+		];
+	}
+	else {
+		datasets = [
+			{ ...data.datasets[0], borderColor: "#00000080", ...point, tension: smooth }
+		];
 	}
 
 	return (
@@ -154,9 +177,7 @@ const LineChart = ( { data, heading, icon, smooth } ) => {
 				} ) } 
 				data={ { 
 					...data, 
-					datasets: [
-						{ ...data.datasets[0], borderColor: "#00000080", ...point, tension: smooth }
-					]
+					datasets: datasets
 				} } 
 			/>
 		)
