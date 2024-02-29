@@ -62,7 +62,7 @@ function App(props) {
 	const [selectedBuoy, setSelectedBuoy] = useState(null);
 	const [mapDetails, setMapDetails] = useState(null);
 	const [seaState, setSeaState] = useState(null);
-	const [rss, setRss] = useState(null);
+	// const [rss, setRss] = useState(null);
 	const [maxItems, setMaxItems] = useState( window.innerWidth < 450 ? 50 : 150 );
 	const [buoyDataPoints, setBuoyDataPoints] = useState(null);
 	const [buoyTideData, setBuoyTideData] = useState(null);
@@ -147,7 +147,7 @@ function App(props) {
 					rotate: "WindDirec (deg)",
 					rotateColour: true,
 					rotateColourMin: 0,
-					rotateColourMax: 25
+					rotateColourMax: 15
 				},
 				{ 
 					label: "Swell", 
@@ -203,7 +203,7 @@ function App(props) {
 					processedData.seasHeight = unprocessedData['Hsig_sea (m)'] != "-9999.00" ? parseFloat( unprocessedData[':'] ) : null;
 					processedData.swellDirection = unprocessedData['Dm (deg)'] != "-9999.00" ? degreesToDirection( unprocessedData['Dm (deg)'] ): null;
 					processedData.windDirection = unprocessedData['WindDirec (deg)'] != "-9999.00" ? degreesToDirection( unprocessedData['WindDirec (deg)'] ) : null;
-					processedData.windSpeed = unprocessedData['WindSpeed (m/s)'] != "-9999.00" ? parseFloat( unprocessedData['WindSpeed (m/s)'] ) : null;
+					processedData.windSpeed = unprocessedData['WindSpeed (m/s)'] != "-9999.00" ? Math.round( parseFloat( unprocessedData['WindSpeed (m/s)'] ) * 1.94384 ) : null;
 					processedData.barometer = unprocessedData['Pressure (hPa)'] != "-9999.00" ? parseFloat( unprocessedData['Pressure (hPa)'] ) : null;
 					
 					// Work out sea state
@@ -231,8 +231,11 @@ function App(props) {
 						const { col, key } = type;
 						const value = rawData[col];
 						if( value != "NaN" && parseInt(value) != -9999 && key != "tide" ) {
-							chartData[key].datasets[0].data.push( { x: parseInt( buoy.timestamp ) * 1000, y: parseFloat( rawData[col] ) } );
+							// Convert windSpeed from m/s to knots
+							const yData = ( key === "windSpeed" ) ? parseFloat( parseFloat( rawData[col] ) * 1.94384 ).toFixed(1) : parseFloat( rawData[col] );
+							chartData[key].datasets[0].data.push( { x: parseInt( buoy.timestamp ) * 1000, y: yData } );
 							chartData[key].labels.push( parseInt( buoy.timestamp ) * 1000 );
+							// Has arrows
 							if( type.rotate ) {
 								chartData[key].datasets[0].rotation.push( Math.floor( parseFloat( rawData[type.rotate] ) ) );
 								// Colour arrows
@@ -247,9 +250,7 @@ function App(props) {
 									else {
 										bracket = Math.round( ( parseInt( rawData[col] ) - type.rotateColourMin ) / ( type.rotateColourMax - type.rotateColourMin ) * 8 );
 									}
-									// console.log( parseInt( value ), type.rotateColourMin, type.rotateColourMax, bracket );
-
-									// bracket = Math.floor( parseInt( rawData[col] / 2 ) );
+									
 									// Full colour
 									chartData[key].datasets[0].pointStyle.push( arrowImages[ bracket > 8 ? 8 : bracket ] );
 								}
@@ -419,7 +420,7 @@ function App(props) {
 										<div class="metric">
 											<h6 className="label">Speed</h6>
 											{ selectedBuoy.processedData.windSpeed
-												? ( <p>{ selectedBuoy.processedData.windSpeed }<small>m/s</small></p> )
+												? ( <p>{ selectedBuoy.processedData.windSpeed }<small>kn</small></p> )
 												: ( <p>-</p> )
 											}
 										</div>
@@ -511,7 +512,7 @@ function App(props) {
 										</div>
 										<LineChart
 											data={ selectedBuoy.chartData.windSpeed }
-											heading={ "Wind Speed (m/s)" }
+											heading={ "Wind Speed (kn)" }
 											icon={ mapDetails.arrow_icon }
 											smooth={ 0 }
 										/>

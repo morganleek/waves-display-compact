@@ -4,6 +4,7 @@
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 import { swellRating } from '../lib/swell';
+import { calcPoint, getShortName } from '../lib/direction';
 // Date
 import * as dayjs from 'dayjs'
 
@@ -68,9 +69,9 @@ const LineChart = ( { data, heading, icon, smooth } ) => {
 						label: ( { dataset, dataIndex: i } ) => {
 							switch( dataset.key ) {
 								case 'windSpeed':
-									return dataset.data[i].y + "m/s (" + dataset.rotation[i] + "\u00B0)";
+									return dataset.data[i].y + "kn (" + getShortName( calcPoint(dataset.rotation[i]) ) + ")"; // (" + dataset.rotation[i] + "\u00B0)" + " 
 								case 'swellHeight':
-									return dataset.data[i].y + "m (" + swellRating( dataset.data[i].y ) + ")";
+									return dataset.data[i].y + "m - " + swellRating( dataset.data[i].y ) + " (" + getShortName( calcPoint(dataset.rotation[i]) ) + ")";
 								case 'seasHeight':
 									return dataset.data[i].y + "m";
 								case 'surfaceTemperature':

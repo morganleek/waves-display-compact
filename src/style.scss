@@ -116,8 +116,15 @@
 
 	.latest-observations {
 		& > h4 {
-			margin: 1.25em 0 0.75em;
+			--wp--custom--typography--font-size--heading-4: 1.3rem;
+			margin: 0; 
+			padding: 26px 0 16px;
 			color: #fff;
+
+			&:first-child {
+				background: url(./images/logo-tarfish-mono.png) 100% 0%/100px auto no-repeat;
+				
+			}
 		}
 		.observations {
 			color: #000;
@@ -355,8 +362,11 @@
 				}
 			}
 			canvas {
-				background: url(./images/logo-watermark.png) 50% 8%/242px auto no-repeat;
+				background: url(./images/logo-watermark-mono.png) 52.5% 30%/40% auto no-repeat;
 				background-blend-mode: multiply;
+				@media (min-width: 768px) {
+					background: url(./images/logo-watermark-mono.png) 54% 25%/40% auto no-repeat;
+				}
 			}
 			.chart-header {
 				display: flex;
