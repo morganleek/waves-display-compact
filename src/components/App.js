@@ -472,7 +472,7 @@ function App(props) {
 										<h6><span className="icon"><IconTide /></span> Tide</h6>
 										{ buoyNextTide
 											? ( <p>
-												<small className="tide-direction">{ buoyNextTide.isFalling ? ( <>Falling <IconArrowDown /></> ) : ( <>Rising <IconArrowUp /></> ) }</small><br />
+												<small className="tide-direction">{ buoyNextTide.isFalling ? ( <>Falling <IconArrowDown /></> ) : ( <>Rising <IconArrowUp /></> ) }</small>
 												<small>{ dayjs( buoyNextTide.timeStamp * 1000 ).format( "h:mma" ) }</small>
 											</p> )
 											: ( <p>-</p> )
