@@ -93,8 +93,9 @@ function App(props) {
 	useEffect(() => {
 		// Fetch all buoys
 		if (buoys.length == 0) {
+			const now = parseInt( Date.now() / 1000 );
 			axios
-				.get('/wp-admin/admin-ajax.php?action=waf_rest_list_buoys')
+				.get('/wp-admin/admin-ajax.php?action=waf_rest_list_buoys&start=' + now )
 				.then(response => {
 					if (response.status == 200) {
 						// Setup buoys
@@ -306,7 +307,6 @@ function App(props) {
 	} );
 
 	const updateBuoy = (newBuoyId) => {
-		console.log( 'updateBuoy: ', newBuoyId );
 		// Set ID except when reselecting the default 
 		if (newBuoyId > 0) {
 			// Fetch buoy values

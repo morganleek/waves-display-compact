@@ -37,10 +37,6 @@ const LineChart = ( { data, heading, headingTwo, icon, smooth } ) => {
 	
 	// Convert timestamp to formated date
 	const xAxisCallback = ( tickValue, index, ticks ) => {
-		// if( index + 1 === ticks.length ) {
-		// 	console.log( 'here' );
-		// 	return "";
-		// }
 		return [
 			dayjs( labels[index] ).format( "D MMM" ),
 			dayjs( labels[index] ).format( "h:mma" )
@@ -186,7 +182,7 @@ const LineChart = ( { data, heading, headingTwo, icon, smooth } ) => {
 			...data[0], 
 			datasets: [
 				{ ...data[0].datasets[0], borderColor: "#00000090", ...point, tension: smooth, yAxisID: "y" },
-				{ ...data[1].datasets[0], borderColor: "#13293360", radius: 3, tension: smooth, yAxisID: "y1" }
+				{ ...data[1].datasets[0], borderColor: "#FFFFFFAA", radius: 3, tension: smooth, yAxisID: "y1" }
 			]
 		};
 	}
@@ -204,9 +200,6 @@ const LineChart = ( { data, heading, headingTwo, icon, smooth } ) => {
 		yTitle: heading,
 		yTitleTwo: Array.isArray( data ) && headingTwo ? headingTwo : undefined // Second Y Axis Label
 	} );
-
-	
-	console.log( heading + " " + headingTwo, finalConfig, finalData );
 
 	return (
 		data && (
