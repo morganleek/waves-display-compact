@@ -93,9 +93,8 @@ function App(props) {
 	useEffect(() => {
 		// Fetch all buoys
 		if (buoys.length == 0) {
-			const now = parseInt( Date.now() / 1000 );
 			axios
-				.get('/wp-admin/admin-ajax.php?action=waf_rest_list_buoys&start=' + now )
+				.get('/wp-admin/admin-ajax.php?action=waf_rest_list_buoys')
 				.then(response => {
 					if (response.status == 200) {
 						// Setup buoys
@@ -325,7 +324,8 @@ function App(props) {
 				.catch((e) => { console.debug(e); });
 			
 			// Fetch tide buoy data
-			axios.get('/wp-admin/admin-ajax.php?action=waf_rest_list_buoy_tide_data', {
+			const now = parseInt( Date.now() / 1000 );
+			axios.get('/wp-admin/admin-ajax.php?action=waf_rest_list_buoy_tide_data&start=' + now, {
 				params: {
 					id: newBuoyId
 				}
