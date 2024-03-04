@@ -517,44 +517,16 @@ function App(props) {
 											smooth={ 0 }
 										/>
 									</div>
-									{/* <div className="chart-wrapper swell">
-										<div className="chart-header">
-											<BackToTop />
-											<h5><span className="icon"><IconSwell /></span> Swell</h5>
-											<ScaleButtons zoom={ zoom } setZoom={ setZoom } />
-										</div>
-										<LineChart
-											data={ [
-												selectedBuoy.chartData.swellHeight,
-												selectedBuoy.chartData.period
-											] }
-											heading="Swell (m)"
-											icon={ mapDetails.arrow_icon }
-											smooth={ 0 }
-										/>
-									</div> */}
 									<div className="chart-wrapper swell">
 										<div className="chart-header">
 											<BackToTop />
-											<h5><span className="icon"><IconSwell /></span> Swell</h5>
+											<h5><span className="icon"><IconSwell /></span> Swell & Period</h5>
 											<ScaleButtons zoom={ zoom } setZoom={ setZoom } />
 										</div>
 										<LineChart
-											data={ selectedBuoy.chartData.swellHeight }
+											data={ [ selectedBuoy.chartData.swellHeight, selectedBuoy.chartData.period ] }
 											heading="Swell (m)"
-											icon={ mapDetails.arrow_icon }
-											smooth={ 0 }
-										/>
-									</div>
-									<div className="chart-wrapper swell">
-										<div className="chart-header">
-											<BackToTop />
-											<h5><span className="icon"><IconSwell /></span> Period</h5>
-											<ScaleButtons zoom={ zoom } setZoom={ setZoom } />
-										</div>
-										<LineChart
-											data={ selectedBuoy.chartData.period }
-											heading="Period (s)"
+											headingTwo="Period (s)"
 											icon={ mapDetails.arrow_icon }
 											smooth={ 0 }
 										/>

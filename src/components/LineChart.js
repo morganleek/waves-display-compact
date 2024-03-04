@@ -29,7 +29,7 @@ const GRID_COLOUR_HALF = "#FFFFFF80";
 // 	return '(Calm)';
 // }
 
-const LineChart = ( { data, heading, icon, smooth } ) => {
+const LineChart = ( { data, heading, headingTwo, icon, smooth } ) => {
 	const labels = Array.isArray( data ) ? data[0].labels : data.labels; 
 
 	const start = Math.min( ...labels );
@@ -47,8 +47,8 @@ const LineChart = ( { data, heading, icon, smooth } ) => {
 		]; // index === 0 ? [] : 
 	}
 
-	const generateConfig = ( { xTitle, yTitle } ) => {
-		return {
+	const generateConfig = ( { xTitle, yTitle, yTitleTwo } ) => {
+		const config = {
 			responsive: true,
 			elements: {
 				line: {
@@ -129,15 +129,38 @@ const LineChart = ( { data, heading, icon, smooth } ) => {
 					}
 				}
 			}
+		};
+
+		if( yTitleTwo ) {
+			config.scales.y1 = {
+				type: 'linear',
+        display: true,
+        position: 'right',
+				id: "y1",
+				ticks: {
+					maxTicksLimit: 6,
+					color: GRID_COLOUR
+				},
+        title: {
+					display: true,
+					text: yTitleTwo,
+					color: GRID_COLOUR
+				},
+        grid: {
+          drawOnChartArea: false, // only want the grid lines for one axis to show up
+        },
+			}
 		}
+
+		return config;
 	}
 
 	// Arrow icons
 	let point = {};
 	if( Array.isArray( data ) ) {
-		if( data[0].datasets[0].rotation && icon ) {
-			let arrow = new Image( 16, 16 );
-			arrow.src = icon;
+		if( data[0].datasets[0].rotation.length > 0 && icon ) {
+			// let arrow = new Image( 16, 16 );
+			// arrow.src = icon;
 			point = { radius: 10 }; // pointStyle: arrow, 
 		}
 		else {
@@ -145,9 +168,9 @@ const LineChart = ( { data, heading, icon, smooth } ) => {
 		}
 	}
 	else {
-		if( data.datasets[0].rotation && icon ) {
-			let arrow = new Image( 16, 16 );
-			arrow.src = icon;
+		if( data.datasets[0].rotation.length > 0 && icon ) {
+			// let arrow = new Image( 16, 16 );
+			// arrow.src = icon;
 			point = { radius: 10 }; // pointStyle: arrow, 
 		}
 		else {
@@ -156,30 +179,40 @@ const LineChart = ( { data, heading, icon, smooth } ) => {
 	}
 
 	// Check if data is array
-	let datasets = [];
+	let finalData;
 	if( Array.isArray( data ) ) {
-		datasets = [
-			{ ...data[0].datasets[0], borderColor: "#00000080", ...point, tension: smooth },
-			{ ...data[1].datasets[0], borderColor: "#00000080", ...point, tension: smooth }
-		];
+
+		finalData = { 
+			...data[0], 
+			datasets: [
+				{ ...data[0].datasets[0], borderColor: "#00000090", ...point, tension: smooth, yAxisID: "y" },
+				{ ...data[1].datasets[0], borderColor: "#13293360", radius: 3, tension: smooth, yAxisID: "y1" }
+			]
+		};
 	}
 	else {
-		datasets = [
-			{ ...data.datasets[0], borderColor: "#00000080", ...point, tension: smooth }
-		];
+		finalData = { 
+			...data, 
+			datasets: [
+				{ ...data.datasets[0], borderColor: "#00000080", ...point, tension: smooth }
+			]
+		};
 	}
+
+	const finalConfig = generateConfig( { 
+		xTitle: dayjs( start ).format( "D MMM YYYY" ) + " - " + dayjs( end ).format( "D MMM YYYY" ),
+		yTitle: heading,
+		yTitleTwo: Array.isArray( data ) && headingTwo ? headingTwo : undefined // Second Y Axis Label
+	} );
+
+	
+	console.log( heading + " " + headingTwo, finalConfig, finalData );
 
 	return (
 		data && (
 			<Line
-				options={ generateConfig( { 
-					xTitle: dayjs( start ).format( "D MMM YYYY" ) + " - " + dayjs( end ).format( "D MMM YYYY" ),
-					yTitle: heading
-				} ) } 
-				data={ { 
-					...data, 
-					datasets: datasets
-				} } 
+				options={ finalConfig } 
+				data={ finalData } 
 			/>
 		)
 	);
