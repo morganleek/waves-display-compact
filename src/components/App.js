@@ -67,6 +67,7 @@ function App(props) {
 	const [buoyDataPoints, setBuoyDataPoints] = useState(null);
 	const [buoyTideData, setBuoyTideData] = useState(null);
 	const [buoyNextTide, setBuoyNextTide] = useState(null);
+	const [loadingBuoy, setLoadingBuoy] = useState(true);
 	const [zoom, setZoom] = useState(3); // 1 - 5
 
 	const arrowColours = [
@@ -290,6 +291,7 @@ function App(props) {
 				processedData, 
 				chartData 
 			} );
+			setLoadingBuoy( false );
 			// Setup buoys
 			// setSelectedBuoy( { ...response.data, processedData, chartData } );
 		}
@@ -306,6 +308,7 @@ function App(props) {
 	} );
 
 	const updateBuoy = (newBuoyId) => {
+		setLoadingBuoy( true );
 		// Set ID except when reselecting the default 
 		if (newBuoyId > 0) {
 			// Fetch buoy values
@@ -403,179 +406,184 @@ function App(props) {
 						)
 						: (
 							<div className="latest-observations">
-								<h4>Latest observations</h4>
-								<div className="observations">
-									<div 
-										className="observation wind"
-										onClick={ () => { document.querySelector('.chart-wrapper.wind')?.scrollIntoView( { behavior: 'smooth' } ) } }	
-									>
-											<h5>Wind <IconWind /></h5>
-										<div class="metric">
-											<h6 className="label">Direction</h6>
-											<p>{ selectedBuoy.processedData.windDirection
-												? selectedBuoy.processedData.windDirection
-												: "-" 
-											}</p>
+								{ loadingBuoy
+									? <div className="loading"><IconLoading /></div>
+									: <>
+										<h4>Latest observations</h4>
+										<div className="observations">
+											<div 
+												className="observation wind"
+												onClick={ () => { document.querySelector('.chart-wrapper.wind')?.scrollIntoView( { behavior: 'smooth' } ) } }	
+											>
+													<h5>Wind <IconWind /></h5>
+												<div class="metric">
+													<h6 className="label">Direction</h6>
+													<p>{ selectedBuoy.processedData.windDirection
+														? selectedBuoy.processedData.windDirection
+														: "-" 
+													}</p>
+												</div>
+												<div class="metric">
+													<h6 className="label">Speed</h6>
+													{ selectedBuoy.processedData.windSpeed
+														? ( <p>{ selectedBuoy.processedData.windSpeed }<small>kn</small></p> )
+														: ( <p>-</p> )
+													}
+												</div>
+											</div>
+											<div 
+												className="observation swell"
+												onClick={ () => { document.querySelector('.chart-wrapper.swell')?.scrollIntoView( { behavior: 'smooth' } ) } }	
+											>
+												<h5>Swell <IconSwell /></h5>
+												<div class="metric">
+													<h6 className="label">Direction</h6>
+													<p>{ selectedBuoy.processedData.swellDirection
+														? selectedBuoy.processedData.swellDirection
+														: "-" 
+													}</p>
+												</div>
+												<div class="metric">
+													<h6 className="label">Height</h6>
+													{ selectedBuoy.processedData.swellHeight 
+														? ( <p>{ selectedBuoy.processedData.swellHeight }<small>m</small></p> )
+														: ( <p>-</p> )
+													}
+												</div>
+											</div>
+											<div 
+												className="observation-small sea-state"
+												onClick={ () => { document.querySelector('.chart-wrapper.sea-state')?.scrollIntoView( { behavior: 'smooth' } ) } }
+											>
+												<h6><span className="icon"><IconSeaState /></span> Sea State</h6>
+												{ seaState != null
+													? ( <p className={ "level-" + swellClass( seaState ) }>{ swellRating( seaState ) }</p> )
+													: ( <p>-</p> )
+												}
+											</div>
+											<div 
+												className="observation-small sea-temperature"
+												onClick={ () => { document.querySelector('.chart-wrapper.temperature')?.scrollIntoView( { behavior: 'smooth' } ) } }
+											>
+												<h6><span className="icon"><IconTemperature /></span> Surface Temp</h6>
+												{ selectedBuoy.processedData.surfaceTemperature 
+													? ( <p>{ parseFloat( selectedBuoy.processedData.surfaceTemperature ).toFixed(1)}<sup>{ "\u2103" }</sup></p> )
+													: ( <p>-</p> ) 
+												}
+											</div>
+											<div 
+												className="observation-small sea-tide"
+												onClick={ () => { document.querySelector('.chart-wrapper.tide')?.scrollIntoView( { behavior: 'smooth' } ) } }
+											>
+												<h6><span className="icon"><IconTide /></span> Tide</h6>
+												{ buoyNextTide
+													? ( <p>
+														<small className="tide-direction">{ buoyNextTide.isFalling ? ( <>Falling <IconArrowDown /></> ) : ( <>Rising <IconArrowUp /></> ) }</small>
+														<small>{ dayjs( buoyNextTide.timeStamp * 1000 ).format( "h:mma" ) }</small>
+													</p> )
+													: ( <p>-</p> )
+												}
+											</div>
+											<div 
+												className="observation-small sea-barometer"
+												onClick={ () => { document.querySelector('.chart-wrapper.barometer')?.scrollIntoView( { behavior: 'smooth' } ) } }	
+											>
+												<h6><span className="icon"><IconBarometer /></span> Barometer</h6>
+												{ selectedBuoy.processedData.barometer 
+													? ( <p className="tide-direction">{ parseInt( selectedBuoy.processedData.barometer ) }<small>hPa</small> <small>{ selectedBuoy.processedData?.barometerChange ? ( <IconArrowDown /> ) : ( <IconArrowUp /> ) }</small></p> )
+													: ( <p>-</p> )
+												}
+											</div>
 										</div>
-										<div class="metric">
-											<h6 className="label">Speed</h6>
-											{ selectedBuoy.processedData.windSpeed
-												? ( <p>{ selectedBuoy.processedData.windSpeed }<small>kn</small></p> )
-												: ( <p>-</p> )
-											}
-										</div>
-									</div>
-									<div 
-										className="observation swell"
-										onClick={ () => { document.querySelector('.chart-wrapper.swell')?.scrollIntoView( { behavior: 'smooth' } ) } }	
-									>
-										<h5>Swell <IconSwell /></h5>
-										<div class="metric">
-											<h6 className="label">Direction</h6>
-											<p>{ selectedBuoy.processedData.swellDirection
-												? selectedBuoy.processedData.swellDirection
-												: "-" 
-											}</p>
-										</div>
-										<div class="metric">
-											<h6 className="label">Height</h6>
-											{ selectedBuoy.processedData.swellHeight 
-												? ( <p>{ selectedBuoy.processedData.swellHeight }<small>m</small></p> )
-												: ( <p>-</p> )
-											}
-										</div>
-									</div>
-									<div 
-										className="observation-small sea-state"
-										onClick={ () => { document.querySelector('.chart-wrapper.sea-state')?.scrollIntoView( { behavior: 'smooth' } ) } }
-									>
-										<h6><span className="icon"><IconSeaState /></span> Sea State</h6>
-										{ seaState != null
-											? ( <p className={ "level-" + swellClass( seaState ) }>{ swellRating( seaState ) }</p> )
-											: ( <p>-</p> )
+										
+										{ ( seaState && seaState > 1 ) 
+											? (
+												<div className="coastal-warnings">
+													<p><a href="http://www.bom.gov.au/marine/" target="_blank">Check BOM Coastal Warnings</a></p>
+												</div>
+											) 
+											: undefined
 										}
-									</div>
-									<div 
-										className="observation-small sea-temperature"
-										onClick={ () => { document.querySelector('.chart-wrapper.temperature')?.scrollIntoView( { behavior: 'smooth' } ) } }
-									>
-										<h6><span className="icon"><IconTemperature /></span> Surface Temp</h6>
-										{ selectedBuoy.processedData.surfaceTemperature 
-											? ( <p>{ parseFloat( selectedBuoy.processedData.surfaceTemperature ).toFixed(1)}<sup>{ "\u2103" }</sup></p> )
-											: ( <p>-</p> ) 
-										}
-									</div>
-									<div 
-										className="observation-small sea-tide"
-										onClick={ () => { document.querySelector('.chart-wrapper.tide')?.scrollIntoView( { behavior: 'smooth' } ) } }
-									>
-										<h6><span className="icon"><IconTide /></span> Tide</h6>
-										{ buoyNextTide
-											? ( <p>
-												<small className="tide-direction">{ buoyNextTide.isFalling ? ( <>Falling <IconArrowDown /></> ) : ( <>Rising <IconArrowUp /></> ) }</small>
-												<small>{ dayjs( buoyNextTide.timeStamp * 1000 ).format( "h:mma" ) }</small>
-											</p> )
-											: ( <p>-</p> )
-										}
-									</div>
-									<div 
-										className="observation-small sea-barometer"
-										onClick={ () => { document.querySelector('.chart-wrapper.barometer')?.scrollIntoView( { behavior: 'smooth' } ) } }	
-									>
-										<h6><span className="icon"><IconBarometer /></span> Barometer</h6>
-										{ selectedBuoy.processedData.barometer 
-											? ( <p className="tide-direction">{ parseInt( selectedBuoy.processedData.barometer ) }<small>hPa</small> <small>{ selectedBuoy.processedData?.barometerChange ? ( <IconArrowDown /> ) : ( <IconArrowUp /> ) }</small></p> )
-											: ( <p>-</p> )
-										}
-									</div>
-								</div>
-								
-								{ ( seaState && seaState > 1 ) 
-									? (
-										<div className="coastal-warnings">
-											<p><a href="http://www.bom.gov.au/marine/" target="_blank">Check BOM Coastal Warnings</a></p>
+										<h4>Historical Observations</h4>
+										<div className="historic-observations">
+											<div className="chart-wrapper wind">
+												<div className="chart-header">
+													<BackToTop />
+													<h5><span className="icon"><IconWind /></span> Wind</h5>
+													<ScaleButtons zoom={ zoom } setZoom={ setZoom } />
+												</div>
+												<LineChart
+													data={ selectedBuoy.chartData.windSpeed }
+													heading={ "Wind Speed (kn)" }
+													icon={ mapDetails.arrow_icon }
+													smooth={ 0 }
+												/>
+											</div>
+											<div className="chart-wrapper swell">
+												<div className="chart-header">
+													<BackToTop />
+													<h5><span className="icon"><IconSwell /></span> Swell & Period</h5>
+													<ScaleButtons zoom={ zoom } setZoom={ setZoom } />
+												</div>
+												<LineChart
+													data={ [ selectedBuoy.chartData.swellHeight, selectedBuoy.chartData.period ] }
+													heading="Swell (m)"
+													headingTwo="Period (s)"
+													icon={ mapDetails.arrow_icon }
+													smooth={ 0 }
+												/>
+											</div>
+											<div className="chart-wrapper sea-state">
+												<div className="chart-header">
+													<BackToTop />
+													<h5><span className="icon"><IconSeaState /></span> Seas</h5>
+													<ScaleButtons zoom={ zoom } setZoom={ setZoom } />
+												</div>
+												<LineChart
+													data={ selectedBuoy.chartData.seasHeight }
+													heading="Seas (m)"
+													smooth={ 0 }
+												/>
+											</div>
+											<div className="chart-wrapper temperature">
+												<div className="chart-header">
+													<BackToTop />
+													<h5><span className="icon"><IconTemperature /></span> Surface Temperature</h5>
+													<ScaleButtons zoom={ zoom } setZoom={ setZoom } />
+												</div>
+												<LineChart
+													data={ selectedBuoy.chartData.surfaceTemperature }
+													heading={ "Temperature (\u2103)" }
+													smooth={ 0 }
+												/>
+											</div>
+											<div className="chart-wrapper tide">
+												<div className="chart-header">
+													<BackToTop />
+													<h5><span className="icon"><IconTide /></span> Tide</h5>
+													<ScaleButtons zoom={ -1 } setZoom={ null } />
+												</div>
+												<LineChart
+													data={ selectedBuoy.chartData.tide }
+													heading={ "Tide Height (m)" }
+													smooth={ 0.7 }
+												/>
+											</div>
+											<div className="chart-wrapper barometer">
+												<div className="chart-header">
+													<BackToTop />
+													<h5><span className="icon"><IconBarometer /></span> Barometer</h5>
+													<ScaleButtons zoom={ zoom } setZoom={ setZoom } />
+												</div>
+												<LineChart
+													data={ selectedBuoy.chartData.barometer }
+													heading={ "Barometer (hPa)" }
+													smooth={ 0 }
+												/>
+											</div>
 										</div>
-									) 
-									: undefined
+									</>
 								}
-								<h4>Historical Observations</h4>
-								<div className="historic-observations">
-									<div className="chart-wrapper wind">
-										<div className="chart-header">
-											<BackToTop />
-											<h5><span className="icon"><IconWind /></span> Wind</h5>
-											<ScaleButtons zoom={ zoom } setZoom={ setZoom } />
-										</div>
-										<LineChart
-											data={ selectedBuoy.chartData.windSpeed }
-											heading={ "Wind Speed (kn)" }
-											icon={ mapDetails.arrow_icon }
-											smooth={ 0 }
-										/>
-									</div>
-									<div className="chart-wrapper swell">
-										<div className="chart-header">
-											<BackToTop />
-											<h5><span className="icon"><IconSwell /></span> Swell & Period</h5>
-											<ScaleButtons zoom={ zoom } setZoom={ setZoom } />
-										</div>
-										<LineChart
-											data={ [ selectedBuoy.chartData.swellHeight, selectedBuoy.chartData.period ] }
-											heading="Swell (m)"
-											headingTwo="Period (s)"
-											icon={ mapDetails.arrow_icon }
-											smooth={ 0 }
-										/>
-									</div>
-									<div className="chart-wrapper sea-state">
-										<div className="chart-header">
-											<BackToTop />
-											<h5><span className="icon"><IconSeaState /></span> Seas</h5>
-											<ScaleButtons zoom={ zoom } setZoom={ setZoom } />
-										</div>
-										<LineChart
-											data={ selectedBuoy.chartData.seasHeight }
-											heading="Seas (m)"
-											smooth={ 0 }
-										/>
-									</div>
-									<div className="chart-wrapper temperature">
-										<div className="chart-header">
-											<BackToTop />
-											<h5><span className="icon"><IconTemperature /></span> Surface Temperature</h5>
-											<ScaleButtons zoom={ zoom } setZoom={ setZoom } />
-										</div>
-										<LineChart
-											data={ selectedBuoy.chartData.surfaceTemperature }
-											heading={ "Temperature (\u2103)" }
-											smooth={ 0 }
-										/>
-									</div>
-									<div className="chart-wrapper tide">
-										<div className="chart-header">
-											<BackToTop />
-											<h5><span className="icon"><IconTide /></span> Tide</h5>
-											<ScaleButtons zoom={ -1 } setZoom={ null } />
-										</div>
-										<LineChart
-											data={ selectedBuoy.chartData.tide }
-											heading={ "Tide Height (m)" }
-											smooth={ 0.7 }
-										/>
-									</div>
-									<div className="chart-wrapper barometer">
-										<div className="chart-header">
-											<BackToTop />
-											<h5><span className="icon"><IconBarometer /></span> Barometer</h5>
-											<ScaleButtons zoom={ zoom } setZoom={ setZoom } />
-										</div>
-										<LineChart
-											data={ selectedBuoy.chartData.barometer }
-											heading={ "Barometer (hPa)" }
-											smooth={ 0 }
-										/>
-									</div>
-								</div>
 							</div>
 						)
 					}
