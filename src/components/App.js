@@ -396,11 +396,15 @@ function App(props) {
 												west: parseFloat( mapDetails.maps_lng_min ), south: parseFloat( mapDetails.maps_lat_max )
 											} }
 											markers={
-												buoys.map( buoy => ({ lat: parseFloat( buoy.lat ), lng: parseFloat( buoy.lng ) }) )
+												buoys.map( buoy => ({ 
+													id: buoy.id,
+													position: { lat: parseFloat( buoy.lat ), lng: parseFloat( buoy.lng ) }
+												}) )
 											}
 											icon={
 												mapDetails.maps_marker_icon
 											}
+											onSelect={ updateBuoy }
 										/>
 									</Wrapper>
 								) }
