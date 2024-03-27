@@ -115,21 +115,7 @@ function App(props) {
 		// 			setRss( true );
 		// 		} );
 		// }
-
-		// Fetch Map details
-		if( mapDetails == null ) {
-
-			axios
-				.get('/wp-json/wac/v1/map')
-				.then(response => {
-					if (response.status == 200) {
-						setMapDetails( response.data );
-					}
-				})
-				.catch( e => { console.debug(e) } );
-		}
-
-		// Draw chart
+// Draw chart
 		if( buoyDataPoints && buoyTideData ) {
 			
 			// Most recent event
@@ -297,6 +283,19 @@ function App(props) {
 			// Setup buoys
 			// setSelectedBuoy( { ...response.data, processedData, chartData } );
 		}
+		// Fetch Map details
+		else if( mapDetails == null ) {
+			axios
+				.get('/wp-json/wac/v1/map')
+				.then(response => {
+					if (response.status == 200) {
+						setMapDetails( response.data );
+					}
+				})
+				.catch( e => { console.debug(e) } );
+		}
+
+		
 	}, [buoyDataPoints, maxItems, zoom]);
 
 	// Change max items if screen width changes
