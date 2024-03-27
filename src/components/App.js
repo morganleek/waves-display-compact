@@ -46,7 +46,7 @@ const ScaleButtons = ( { zoom, setZoom } ) => (
 	<div className="scaleButtons">
 		{ zoom > 0 && ( 
 			<>
-				<button className={ classNames( { 'disabled': zoom >= 5 } ) } onClick={ () => { if( zoom < 5 ) { setZoom( zoom + 1 ) } } }>-</button>
+				<button className={ classNames( { 'disabled': zoom >= 7 } ) } onClick={ () => { if( zoom < 7 ) { setZoom( zoom + 1 ) } } }>-</button>
 				<button className={ classNames( { 'disabled': zoom <= 1 } ) } onClick={ () => { if( zoom > 1 ) { setZoom( zoom - 1 ) } } }>+</button>
 			</>
 		) }
@@ -64,12 +64,12 @@ function App(props) {
 	const [mapDetails, setMapDetails] = useState(null);
 	const [seaState, setSeaState] = useState(null);
 	// const [rss, setRss] = useState(null);
-	const [maxItems, setMaxItems] = useState( window.innerWidth < 450 ? 50 : 150 );
+	const [maxItems, setMaxItems] = useState( window.innerWidth < 450 ? 50 : 200 );
 	const [buoyDataPoints, setBuoyDataPoints] = useState(null);
 	const [buoyTideData, setBuoyTideData] = useState(null);
 	const [buoyNextTide, setBuoyNextTide] = useState(null);
 	const [loadingBuoy, setLoadingBuoy] = useState(true);
-	const [zoom, setZoom] = useState(3); // 1 - 5
+	const [zoom, setZoom] = useState(3); // 1 - 7
 
 	const arrowColours = [
 		"#ccf0fe", "#9cdbfc", "#acffa7", "#7ede78", "#e6e675", 
@@ -226,7 +226,7 @@ function App(props) {
 
 				// Limit dataset based on limits
 				const buoyDataPointsClone = [ ...buoyDataPoints ];
-				buoyDataPointsClone.splice(0, Math.ceil( ( zoom / 5 ) * maxItems ) ).forEach( buoy => {
+				buoyDataPointsClone.splice(0, Math.ceil( ( zoom / 7 ) * maxItems ) ).forEach( buoy => {
 					const rawData = JSON.parse(buoy.data_points);
 
 					// Process for each data type
@@ -316,7 +316,8 @@ function App(props) {
 			// Fetch buoy values
 			axios.get('/wp-admin/admin-ajax.php?action=waf_rest_list_buoy_datapoints', {
 					params: {
-						id: newBuoyId
+						id: newBuoyId,
+						range: 10
 					}
 				})
 				.then(response => {
