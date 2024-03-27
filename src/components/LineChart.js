@@ -65,7 +65,7 @@ const LineChart = ( { data, heading, headingTwo, icon, smooth } ) => {
 						label: ( { dataset, dataIndex: i } ) => {
 							switch( dataset.key ) {
 								case 'windSpeed':
-									return dataset.data[i].y + "kn (" + getSimpleDirection( dataset.rotation[i] ) + ")"; // + dataset.rotation[i] + "\u00B0";
+									return dataset.data[i].y + "kn (" + getSimpleDirection( dataset.rotation[i] ) + ") " + dataset.rotation[i] + "\u00B0";
 								case 'swellHeight':
 									return dataset.data[i].y + "m - " + swellRating( dataset.data[i].y ) + " (" + getSimpleDirection( dataset.rotation[i] ) + ")";
 								case 'seasHeight':
