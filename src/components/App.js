@@ -14,6 +14,7 @@ import { ReactComponent as IconBarometer } from '../images/icon-barometer-croppe
 import { ReactComponent as IconArrowUp } from '../images/icon-arrow-up-14.svg';
 import { ReactComponent as IconArrowDown } from '../images/icon-arrow-down-14.svg';
 import { swellRating, swellClass } from '../lib/swell';
+import { getSimpleDirection } from '../lib/direction';
 
 // Map
 import { Wrapper, Status } from "@googlemaps/react-wrapper";
@@ -33,13 +34,13 @@ const mapRender = ( status ) => {
 	return <IconLoading />;
 }
 
-const degreesToDirection = degrees => {
-	const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
-	const reverse = ( parseInt(degrees) + 180 ) % 360;
-	const rough = ( reverse + ( 360 + 22.5 ) ) % 360; // Move 22.5 degrees counter clockwise
-	const section = Math.floor( rough / 45 ); // Narrow to 1 of 8 directions
-	return directions[section];
-}
+// const degreesToDirection = degrees => {
+// 	const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+// 	const reverse = ( parseInt(degrees) + 180 ) % 360;
+// 	const rough = ( reverse + ( 360 + 22.5 ) ) % 360; // Move 22.5 degrees counter clockwise
+// 	const section = Math.floor( rough / 45 ); // Narrow to 1 of 8 directions
+// 	return directions[section];
+// }
 
 const ScaleButtons = ( { zoom, setZoom } ) => (
 	<div className="scaleButtons">
@@ -202,8 +203,9 @@ function App(props) {
 					processedData.surfaceTemperature = unprocessedData['SST (degC)'] != "-9999.0" ? parseFloat( unprocessedData['SST (degC)'] ) : null;
 					processedData.swellHeight = unprocessedData['Hsig_swell (m)'] != "-9999.00" ? parseFloat( unprocessedData['Hsig_swell (m)'] ) : null;
 					processedData.seasHeight = unprocessedData['Hsig_sea (m)'] != "-9999.00" ? parseFloat( unprocessedData[':'] ) : null;
-					processedData.swellDirection = unprocessedData['Dm (deg)'] != "-9999.00" ? degreesToDirection( unprocessedData['Dm (deg)'] ): null;
-					processedData.windDirection = unprocessedData['WindDirec (deg)'] != "-9999.00" ? degreesToDirection( unprocessedData['WindDirec (deg)'] ) : null;
+					processedData.swellDirection = unprocessedData['Dm (deg)'] != "-9999.00" ? getSimpleDirection( unprocessedData['Dm (deg)'] ): null;
+					processedData.windDirectionNumerical = unprocessedData['WindDirec (deg)'] != "-9999.00" ? unprocessedData['WindDirec (deg)'] : null;
+					processedData.windDirection = unprocessedData['WindDirec (deg)'] != "-9999.00" ? getSimpleDirection( unprocessedData['WindDirec (deg)'] ) : null;
 					processedData.windSpeed = unprocessedData['WindSpeed (m/s)'] != "-9999.00" ? Math.round( parseFloat( unprocessedData['WindSpeed (m/s)'] ) * 1.94384 ) : null;
 					processedData.barometer = unprocessedData['Pressure (hPa)'] != "-9999.00" ? parseFloat( unprocessedData['Pressure (hPa)'] ) : null;
 					
