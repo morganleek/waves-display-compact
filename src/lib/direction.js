@@ -23,7 +23,12 @@
 // }
 
 export const getSimpleDirection = degrees => {
-	const directions = ['S', 'SW', 'W', 'NW', 'N', 'NE', 'E', 'SE'];
-	const quadrant = Math.floor((( parseFloat( degrees ) + 12.5 ) % 360) / 45);
+	const directions = [
+		'N', 'N/NE', 'NE', 'E/NE', 
+		'E', 'E/SE', 'SE', 'S/SE',
+		'S', 'S/SW', 'SW', 'W/SW',
+		'W', 'N/NW', 'NW', 'N/NW'
+	];
+	const quadrant = Math.floor((( parseFloat( degrees ) + 11.5 ) % 360) / 22.5);
 	return ( quadrant < directions.length + 1 ) ? directions[quadrant] : '-';
 }

@@ -372,10 +372,18 @@ function App(props) {
 							: undefined
 						} */}
 						<div className="selector">
-							<select onChange={e => updateBuoy(e.target.value)}>
+							<select 
+								onChange={e => updateBuoy(e.target.value)}
+								value={ buoyId ? buoyId : 0 }
+							>
 								<option value="0">Select a buoy</option>
 								{buoys.map((buoy, i) => (
-									<option key={i} value={buoy.id}>{buoy.web_display_name}</option>
+									<option 
+										key={i} 
+										value={buoy.id}
+									>
+										{buoy.web_display_name}
+									</option>
 								))}
 							</select>
 						</div>
