@@ -4,8 +4,8 @@
  * Description:       Compact Waves Display for recreational fishing websites
  * Requires at least: 6.1
  * Requires PHP:      7.0
- * Version:           1.0.2
- * Author:            The WordPress Contributors
+ * Version:           1.0.3
+ * Author:            Morgan Leek
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       waves-display-compact
