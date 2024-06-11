@@ -1,7 +1,8 @@
 // React
 // import { useState } from "@wordpress/element";
 // Charts
-import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip } from 'chart.js';
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, TimeScale } from 'chart.js';
+import 'chartjs-adapter-date-fns';
 import { Line } from 'react-chartjs-2';
 import { swellRating } from '../lib/swell';
 import { getSimpleDirection } from '../lib/direction';
@@ -13,6 +14,7 @@ ChartJS.register(
   LinearScale,
   PointElement,
   LineElement,
+	TimeScale,
   Title,
   Tooltip
 );
@@ -30,21 +32,25 @@ const GRID_COLOUR_HALF = "#FFFFFF80";
 // }
 
 const LineChart = ( { data, heading, headingTwo, icon, smooth } ) => {
-	const labels = Array.isArray( data ) ? data[0].labels : data.labels; 
+	const labelsRaw = Array.isArray( data ) ? data[0].labels : data.labels; 	
 
-	const start = Math.min( ...labels );
-	const end = Math.max( ...labels );
+	const start = Math.min( ...labelsRaw );
+	const end = Math.max( ...labelsRaw );
 	
 	// Convert timestamp to formated date
 	const xAxisCallback = ( tickValue, index, ticks ) => {
 		return [
-			dayjs( labels[index] ).format( "D MMM" ),
-			dayjs( labels[index] ).format( "h:mma" )
-		]; // index === 0 ? [] : 
+			dayjs( tickValue ).format( "h:mm a" ),
+			dayjs( tickValue ).format( "D MMM" )
+		];
+		return tickValue;
 	}
+
+	const labels = labelsRaw.map( label => new Date( label ) );
 
 	const generateConfig = ( { xTitle, yTitle, yTitleTwo } ) => {
 		const config = {
+			type: 'line',
 			responsive: true,
 			elements: {
 				line: {
@@ -59,8 +65,10 @@ const LineChart = ( { data, heading, headingTwo, icon, smooth } ) => {
 				tooltip: {
 					callbacks: {
 						title: ( props ) => {
-							const label = parseInt( props[0].label );
-							return dayjs( label ).format( "D MMM h:mma" );
+							// const label = parseInt( props[0].label );
+							return dayjs( 
+								parseInt( props[0].parsed.x ) 
+							).format( "D MMM h:mma" );
 						},
 						label: ( { dataset, dataIndex: i } ) => {
 							switch( dataset.key ) {
@@ -75,7 +83,7 @@ const LineChart = ( { data, heading, headingTwo, icon, smooth } ) => {
 								case 'barometer':
 									return dataset.data[i].y + "hPa"; // \u3371
 								case 'tide':
-									return dataset.data[i].y + "m " + dayjs(  dataset.data[i].x ).format( "h:mma" );
+									return dataset.data[i].y + "m"; // + dayjs(   ).format( "h:mma" );
 								case 'period':
 									return dataset.data[i].y + "s"; // \u3371
 							}
@@ -85,25 +93,25 @@ const LineChart = ( { data, heading, headingTwo, icon, smooth } ) => {
 			},
 			scales: {
 				x: {
-					time: {
-						tooltipFormat: "DD T HH:mm"
-					},
+					type: 'time',
+					// time: {
+					// 	tooltipFormat: "dd T HH:mm"
+					// },
 					title: {
 						display: true,
 						color: GRID_COLOUR,
 						text: xTitle
 					},
 					ticks: {
-						maxTicksLimit: 7,
-						align: 'end',
+						// maxTicksLimit: 7,
+						align: 'center',
 						autoSkip: true,
 						maxRotation: 0,
 						color: GRID_COLOUR,
-						callback: xAxisCallback
+						callback: xAxisCallback,
 					},
-					reverse: true,
 					grid: {
-						color: GRID_COLOUR_HALF
+						color: GRID_COLOUR_HALF,
 					}
 				},
 				y: {
@@ -179,7 +187,7 @@ const LineChart = ( { data, heading, headingTwo, icon, smooth } ) => {
 	if( Array.isArray( data ) ) {
 
 		finalData = { 
-			...data[0], 
+			// labels: labels, 
 			datasets: [
 				{ ...data[0].datasets[0], borderColor: "#00000090", ...point, tension: smooth, yAxisID: "y" },
 				{ ...data[1].datasets[0], borderColor: "#FFFFFFAA", radius: 3, tension: smooth, yAxisID: "y1" }
@@ -188,7 +196,7 @@ const LineChart = ( { data, heading, headingTwo, icon, smooth } ) => {
 	}
 	else {
 		finalData = { 
-			...data, 
+			// labels: labels, 
 			datasets: [
 				{ ...data.datasets[0], borderColor: "#00000080", ...point, tension: smooth }
 			]
