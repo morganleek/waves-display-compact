@@ -139,7 +139,7 @@ function App(props) {
 				},
 				{ 
 					label: "Swell", 
-					col: "Hsig_swell (m)", 
+					col: "Hsig (m)", // "Hsig_swell (m)", 
 					key: "swellHeight",
 					rotate: "Dm (deg)",
 					rotateColour: true,
@@ -187,7 +187,8 @@ function App(props) {
 					// console.log( unprocessedData );
 					processedData.timeStampUTC = unprocessedData['Timestamp (UTC)'];
 					processedData.surfaceTemperature = unprocessedData['SST (degC)'] != "-9999.0" ? parseFloat( unprocessedData['SST (degC)'] ) : null;
-					processedData.swellHeight = unprocessedData['Hsig_swell (m)'] != "-9999.00" ? parseFloat( unprocessedData['Hsig_swell (m)'] ) : null;
+					// processedData.swellHeight = unprocessedData['Hsig_swell (m)'] != "-9999.00" ? parseFloat( unprocessedData['Hsig_swell (m)'] ) : null;
+					processedData.swellHeight = unprocessedData['Hsig (m)'] != "-9999.00" ? parseFloat( unprocessedData['Hsig (m)'] ) : null;
 					processedData.seasHeight = unprocessedData['Hsig_sea (m)'] != "-9999.00" ? parseFloat( unprocessedData[':'] ) : null;
 					processedData.swellDirection = unprocessedData['Dm (deg)'] != "-9999.00" ? getSimpleDirection( unprocessedData['Dm (deg)'] ): null;
 					processedData.windDirectionNumerical = unprocessedData['WindDirec (deg)'] != "-9999.00" ? unprocessedData['WindDirec (deg)'] : null;
