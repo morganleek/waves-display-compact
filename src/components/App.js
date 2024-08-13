@@ -105,17 +105,8 @@ function App(props) {
 				})
 				.catch((e) => { console.debug(e); });
 		}
-		// RSS
-		// if( !rss ) {
-		// 	fetch('http://www.bom.gov.au/fwo/IDZ00072.warnings_marine_tas.xml')
-		// 		.then(response => response.text())
-		// 		.then(str => new window.DOMParser().parseFromString(str, "text/xml"))
-		// 		.then(data => {
-		// 			console.log(data);
-		// 			setRss( true );
-		// 		} );
-		// }
-// Draw chart
+		
+		// Draw chart
 		if( buoyDataPoints && buoyTideData ) {
 			
 			// Most recent event
