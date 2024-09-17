@@ -22,13 +22,27 @@
 // 	return name.replace(/north/g, "N").replace(/east/g, "E").replace(/south/g, "S").replace(/west/g, "W").replace(/by/g, "b").replace(/[\s-]/g, "");
 // }
 
-export const getSimpleDirection = degrees => {
+export const getSimpleDirection = ( degrees ) => {
 	const directions = [
-		'N', 'N/NE', 'NE', 'E/NE', 
-		'E', 'E/SE', 'SE', 'S/SE',
-		'S', 'S/SW', 'SW', 'W/SW',
-		'W', 'N/NW', 'NW', 'N/NW'
+		'N',
+		'N/NE',
+		'NE',
+		'E/NE',
+		'E',
+		'E/SE',
+		'SE',
+		'S/SE',
+		'S',
+		'S/SW',
+		'SW',
+		'W/SW',
+		'W',
+		'N/NW',
+		'NW',
+		'N/NW',
 	];
-	const quadrant = Math.floor((( parseFloat( degrees ) + 11.5 ) % 360) / 22.5);
-	return ( quadrant < directions.length + 1 ) ? directions[quadrant] : '-';
-}
+	const quadrant = Math.floor(
+		( ( parseFloat( degrees ) + 11.5 ) % 360 ) / 22.5
+	);
+	return quadrant < directions.length + 1 ? directions[ quadrant ] : '-';
+};

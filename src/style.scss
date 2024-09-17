@@ -115,6 +115,14 @@
 	}
 
 	.latest-observations {
+		.scroll-into-view {
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			opacity: 0;
+		}
 		& > h4 {
 			--wp--custom--typography--font-size--heading-4: 1.3rem;
 			margin: 0; 
@@ -140,6 +148,7 @@
 			& > * {
 				// background: #fbfbfb;
 				&.observation {
+					position: relative;
 					// padding: 10px;
 					border-radius: var(--wp--wac--radius);
 					// border: 1px solid #fff;
@@ -220,6 +229,7 @@
 					grid-template-rows: auto auto;
 					align-items: center;
 					gap: 5px;
+					position: relative;
 					@media (min-width: 768px) {
 						grid-template-rows: 24px auto; // 1fr 2fr;
 						gap: 10px;
@@ -384,6 +394,8 @@
 					display: flex;
 					gap: 6px;
 					align-items: center;
+					border: 0 none;
+					background-color: transparent;
 					cursor: pointer;
 					&::before {
 						content: "Top";
