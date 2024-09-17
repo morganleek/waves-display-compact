@@ -1,0 +1,27 @@
+{
+	"extends": [
+		"plugin:@wordpress/eslint-plugin/recommended"
+	],
+	"globals": {
+		"wad": true,
+		"gtag": true,
+		"google": true
+	},
+	"env": {
+		"browser": true
+	},
+	"settings": {
+		"import/core-modules": [
+			"chart.js"
+		]
+	},
+	"rules": {
+		"prettier/prettier": "warn",
+		"no-unused-vars": "warn",
+		"no-console": "warn",
+		"curly": [
+			"warn",
+			"all"
+		]
+	}
+}
