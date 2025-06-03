@@ -15,6 +15,8 @@ import { ReactComponent as IconArrowUp } from '../images/icon-arrow-up-14.svg';
 import { ReactComponent as IconArrowDown } from '../images/icon-arrow-down-14.svg';
 import { swellRating, swellClass } from '../lib/swell';
 import { getSimpleDirection } from '../lib/direction';
+// GTag
+import TagManager from 'react-gtm-module';
 
 // Map
 import { Wrapper, Status } from '@googlemaps/react-wrapper';
@@ -391,6 +393,13 @@ function App() {
 	};
 
 	useEffect( () => {
+		const tagManagerArgs = {
+			gtmId: 'GTM-KNN36PH3'
+		};
+		TagManager.initialize( tagManagerArgs );
+	} );
+
+	useEffect( () => {
 		// Fetch all buoys
 		if ( buoys.length === 0 ) {
 			axios
@@ -441,6 +450,15 @@ function App() {
 			setSelectedBuoy( null );
 			return;
 		}
+
+		// Run GTM Event
+		TagManager.dataLayer( {
+			dataLayer: {
+				event: 'buoy_loaded_' + newBuoyId,
+				// add other properties to set a value
+				// to unset a property use undefined as value
+			},
+    } );
 
 		// Fetch buoy values
 		axios

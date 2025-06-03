@@ -15,7 +15,7 @@
 		"start": "wp-scripts start --blocks-manifest"
 	},
 	"devDependencies": {
-		"@wordpress/scripts": "^30.15.0"
+		"@wordpress/scripts": "^30.17.0"
 	},
 	"dependencies": {
 		"@glyphs/react-core": "^0.0.8",
@@ -26,6 +26,7 @@
 		"classnames": "^2.5.1",
 		"dayjs": "^1.11.10",
 		"react-chartjs-2": "^5.2.0",
+		"react-gtm-module": "^2.0.11",
 		"rss-parser": "^3.13.0"
 	}
 }
