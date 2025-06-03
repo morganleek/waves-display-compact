@@ -455,8 +455,6 @@ function App() {
 		TagManager.dataLayer( {
 			dataLayer: {
 				event: 'buoy_loaded_' + newBuoyId,
-				// add other properties to set a value
-				// to unset a property use undefined as value
 			},
     } );
 
